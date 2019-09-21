@@ -15,6 +15,8 @@ let pecaAlSeuLloc;
 let timeInitial;
 let timeEnd;
 
+let sizeOfPieces = 60;
+
 let pezaSeleccionada= false;
 
 //create right part of piece and inversee
@@ -165,10 +167,10 @@ function createSvg(piecePath,x,y,index){
   let xmlns = "http://www.w3.org/2000/svg";
   let svg=document.createElementNS(xmlns,"svg");
   let idPattern="row"+x+"col"+y;
-  let pattern='<defs><pattern id="'+ idPattern +'" patternUnits="userSpaceOnUse" width="'+(numCols*100)+'" height="'+(numRows*100)+'"><image href="'+host+model.urlImg+'" x="'+(x*-100+40)+'" y="'+(y*-100+40)+'" width="'+(numCols*100)+'" height="'+(numRows*100)+'" /></pattern></defs>';
+  let pattern='<defs><pattern id="'+ idPattern +'" patternUnits="userSpaceOnUse" width="'+(numCols*sizeOfPieces)+'" height="'+(numRows*sizeOfPieces)+'"><image href="'+host+model.urlImg+'" x="'+(x*-100+40)+'" y="'+(y*-100+40)+'"  /></pattern></defs>';
   svg.innerHTML= pattern;
-  svg.setAttribute("width","180");
-  svg.setAttribute("height","180");
+  svg.setAttribute("width",sizeOfPieces * 180 / 100);
+  svg.setAttribute("height",sizeOfPieces * 180 / 100);
   svg.setAttribute("viewBox","0 0 180 180");
   let path=  document.createElementNS(xmlns,"path");
   path.setAttribute("d","M40,40 "+piecePath);
@@ -178,18 +180,24 @@ function createSvg(piecePath,x,y,index){
   let move = document.createElement("DIV");
   move.appendChild(svg);
   move.className="move";
+  move.style.width = sizeOfPieces + "px";
+  move.style.height = sizeOfPieces + "px";
   move.path=path;
   move.onmousemove=getPos;
-  move.onmouseout=stopTracking;
+  move.touchstart=getPos;
+  move.onmouseout=stopTracking;  move.touchcancel=stopTracking;
   //move.setAttribute("classangle","g0")
   move.angle=0;
   move.occupy= false;
-  move.position=function(){return {left:this.offsetLeft+50,top:this.offsetTop +50};};
+  move.position=function(){return {left:this.offsetLeft+(sizeOfPieces/2),top:this.offsetTop +(sizeOfPieces/2)};};
   move.onmouseup=dropPiece;
+  move.touchend=dropPiece;
   move.index=index;
   //position indicates the position on the board
   let position = document.createElement("DIV");
   position.className="position";
+  position.style.width = sizeOfPieces + "px";
+  position.style.height = sizeOfPieces + "px";
   position.index=index;
   position.occupied=false;
   document.querySelector("#container").appendChild(position);
@@ -283,8 +291,8 @@ function createPuzzle(model){
   pezaSeleccionada= false;
   numRows=model.numRows;
   numCols=model.numCols;
-  document.getElementById("container").style.width=numCols*100 +"px";
-  document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
+  document.getElementById("container").style.width=numCols*sizeOfPieces +"px";
+  document.getElementById("container").style.backgroundPositionY=sizeOfPieces*model.numRows+"px";
   for (let row=0; row<numRows; row++){
     for (let col=0; col<numCols; col++){
       var dades=pieceData(row,col,index);
@@ -303,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("container").style.backgroundImage="url("+host+model.urlImg+")";
     document.getElementById("container").style.backgroundPositionY=0;
   };
-  document.getElementById("seeModel").onmouseout=function(){
+  document.getElementById( "seeModel").onmouseout=function(){
     document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
   };
   document.getElementById("start").onclick= start;
@@ -441,7 +449,7 @@ function placePiece(p){
   p.style.zIndex = zIndex++;
   p.zIndexPrevi=p.style.zIndex;
   document.querySelectorAll(".position").forEach (function(e,i){
-    if ((p.position().left>e.offsetLeft && p.position().left<e.offsetLeft+100)&&(p.position().top>e.offsetTop && p.position().top<e.offsetTop+100) && !e.occupied ){
+    if ((p.position().left>e.offsetLeft && p.position().left<e.offsetLeft+sizeOfPieces)&&(p.position().top>e.offsetTop && p.position().top<e.offsetTop+sizeOfPieces) && !e.occupied ){
       p.style.left=e.offsetLeft+"px";
       p.style.top=e.offsetTop+"px";
       e.occupied= true;
@@ -460,8 +468,11 @@ function dropPiece(){
   pezaSeleccionada=false;
 
 }
-document.addEventListener('mousemove', function(event) {
-  event.preventDefault();
+document.addEventListener('mousemove', drag, true);
+document.addEventListener("touchmove", drag, true);
+
+function drag(event) {
+  // event.preventDefault();
   if (pezaSeleccionada) {
     let mousePosition = {
 
@@ -474,7 +485,7 @@ document.addEventListener('mousemove', function(event) {
 
 
   }
-}, true);
+}
 
 
 function getPos(e){
@@ -483,9 +494,10 @@ function getPos(e){
   var x=e.clientX-this.offsetLeft;
   var y=e.clientY- this.offsetTop + scrollBodyTop();
 
-  if ((x>0 && x<100) && (y>0 && y<100)){
+  if ((x>0 && x<sizeOfPieces) && (y>0 && y<sizeOfPieces)){
 
     this.onmousedown=takePiece;
+    this.touchstart=takePiece;
     this.ondblclick=girar;
     this.style.cursor="move";
 
@@ -495,7 +507,7 @@ function getPos(e){
 
   }else{
 
-    this.onmousedown="";
+    this.onmousedown=""; this.touchstart="";
     this.ondblclick="";
     this.style.cursor="default";
     this.style.zIndex=this.zIndexPrevi;
