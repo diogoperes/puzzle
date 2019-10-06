@@ -1,13 +1,14 @@
 import '../styles/index.scss';
 // import $ from 'jquery';
 import attachFastClick  from 'fastclick';
+import {pieceData} from './puzzlePieceHelper.js';
 
 console.log('webpack starterkit');
 
 
 var zIndex=1;
 // var host='http://www.wdisseny.com/puzzle/';
-var host='http://picsum.photos/';
+var host='http://picsum.photos';
 let model;
 let numRows;
 let numCols;
@@ -25,201 +26,187 @@ let sizeOfPieces = 100;
 
 let pezaSeleccionada= false;
 
-//create right part of piece and inversee
-function createRightFace(i){
-  // return {draw:" l -10,50 l 10,50 ",inverse:" l  -10,-50 l 10,-50 "}
+let imageSrc;
 
-  return {draw:"l 0, 43 l-5,0 a11,11 1,1,0 0,14 l5,0 l 0, 43",
-    inverse:"l 0, -43 l-5,0 a11,11 1,1,1 0,-14 l5,0 l 0, -43"};
+let puzzleImagesList = {};
+let imagesLoaded = 0;
 
-  var path =[
-      {draw:"q -4,20 -5,43 l-5,0 a11,11 1,1,0 0,14 l5,0 q1,20 5,43",
-      inverse:"q -4,-20  -5,-43 l-5,0 a11,11 1,1,1 0,-14 l5,0 q 1-20 5,-43"},
-    {draw:"q -4,20 -5,43 l5,0 a11,11 1,1,1 0,14 l-5,0 q1,20 5,43",
-      inverse:"q -4,-20 -5,-43 l 5,0 a11,11 1,1,0 0,-14 l-5,0 q 1-20 5,-43"},
-    {draw:"q 4,20 5,43 l-5,0 a11,11 1,1,0 0,14 l5,0 q -1,20 -5,43",
-      inverse:"q 4,-20  5,-43 l-5,0 a11,11 1,1,1 0,-14 l5,0 q -1-20 -5,-43"},
-    {draw:"q 4,20 5,43 l5,0 a11,11 1,1,1 0,14 l-5,0	q -1,20 -5,43",
-      inverse:"q 4,-20  5,-43 l5,0 a11,11 1,1,0 0,-14 l-5,0 q -1-20 -5,-43"},
-  ];
+// function createSvg(piecePath,x,y,index){
+//   let xmlns = "http://www.w3.org/2000/svg";
+//   let svg=document.createElementNS(xmlns,"svg");
+//   let idPattern="row"+x+"col"+y;
+//   // let pattern='<defs><pattern id="'+ idPattern +'" patternUnits="userSpaceOnUse" width="'+(numCols*sizeOfPieces)+'" height="'+(numRows*sizeOfPieces)+'"><image href="'+host+model.urlImg+'" x="'+(x*-100+40)+'" y="'+(y*-100+40)+'"  /></pattern></defs>';
+//   let pattern= `<defs>
+//     <pattern id="${idPattern}" patternUnits="userSpaceOnUse" width="${numCols*sizeOfPieces}" height="${numRows*sizeOfPieces}">
+//       <image href="${host}/${model.width}/${model.height}" x="${x*-100+40}" y="${y*-100+40}"></image>
+//     </pattern>
+//   </defs>`;
+//   svg.innerHTML= pattern;
+//   svg.setAttribute("width",sizeOfPieces * 180 / 100);
+//   svg.setAttribute("height",sizeOfPieces * 180 / 100);
+//   svg.setAttribute("viewBox","0 0 180 180");
+//   let path=  document.createElementNS(xmlns,"path");
+//   path.setAttribute("d","M40,40 "+piecePath);
+//   path.setAttribute("fill","url(#"+idPattern+")");
+//   path.style.fill="url(#"+idPattern+")";
+//   svg.appendChild(path);
+//   let move = document.createElement("DIV");
+//   move.appendChild(svg);
+//   move.className="move";
+//   move.style.width = sizeOfPieces + "px";
+//   move.style.height = sizeOfPieces + "px";
+//   move.path=path;
+//   // move.onmousemove=getPos;
+//   move.onmousedown=getPos;
+//   move.onclick=onDblClick;
+//   move.ontouchstart=getPos;
+//   move.onmouseout=stopTracking;  move.touchcancel=stopTracking;
+//   //move.setAttribute("classangle","g0")
+//   move.angle=0;
+//   move.occupy= false;
+//   move.position=function(){return {left:this.offsetLeft+(sizeOfPieces/2),top:this.offsetTop +(sizeOfPieces/2)};};
+//   move.onmouseup=dropPiece;
+//   move.ontouchend=dropPiece;
+//   move.index=index;
+//   //position indicates the position on the board
+//   let position = document.createElement("DIV");
+//   position.className="position";
+//   position.style.width = sizeOfPieces + "px";
+//   position.style.height = sizeOfPieces + "px";
+//   position.index=index;
+//   position.occupied=false;
+//   document.querySelector("#container").appendChild(position);
+//   position.appendChild(move);
+//   move.style.zIndex = zIndex++;
+//   move.zIndexPrevi=move.style.zIndex;
+//
+//
+// }
 
-  return path[Math.floor(Math.random()*path.length)];
-
-}
-function createBottomFace(i){
-  // return {draw:" l -50,10 l -50,-10 ",inverse:" l  50,10 l 50,-10 "}
-
-  //straight faces
-  return {draw:"l -43, 0 l0,-5 a11,11 1,1,0 -14,0 l0,5 l -43,0",
-    inverse:"l 43, 0 l0,-5 a11,11 1,1,1 14,0 l0,5 l 43,0 "};
-
-  // var path =[
-  //   {draw:"q -20,-4 -43,-5 l0,-5 a11,11 1,1,0 -14,0 l0,5 q-20,1 -43,5",
-  //     inverse:"q 20,-4 43,-5 l0,-5 a11,11 1,1,1 14,0 l0,5 q20,1 43,5 "},
-  //   {draw:"q -20,-4 -43,-5 l0,5 a11,11 1,1,1 -14,0 l0,-5 q-20,1 -43,5",
-  //     inverse:"q 20,-4 43,-5 l0,5 a11,11 1,1,0 14,0 l0,-5 q20,1 43,5 "},
-  //   {draw:"q -20,4 -43,5 l0,-5 a11,11 1,1,0 -14,0 l0,5 q-20,-1 -43,-5",
-  //     inverse:"q 20,4 43,5 l0,-5 a11,11 1,1,1 14,0 l0,5 q20,-1 43,-5 "},
-  //   {draw:"q -20,4 -43,5 l0,5 a11,11 1,1,1 -14,0 l0,-5 q-20,-1 -43,-5",
-  //     inverse:"q 20,4 43,5 l0,5 a11,11 1,1,0 14,0 l0,-5 q20,-1 43,-5 "},
-  // ];
-
-  return path[Math.floor(Math.random()*path.length)];
-}
-
-//get the inverse of left piece's right face to be the left face of current piece
-function getInverseRightFace(i){
-  return {draw:director[i-1].b.inverse};
-}
-//get the inverse of top piece's bottom face to be the top face of current piece
-function getInverseBottomFace(i){
-  return {draw:director[i-numCols].c.inverse};
-}
-
-function pieceData(row,col,index){
-  let object ={};
-  switch (true) {
-    case (col === 0 && row === 0) :
-      object={
-        type:"supEsquerra",
-        a:{draw:" l 100,0 "},
-        b:createRightFace(index),
-        c:createBottomFace(index),
-        d:{draw:" l 0,-100"},
-      };
-      break;
-    case (row === 0 && col === numCols-1) :
-      object={
-        type:"supDreta",
-        a:{draw:" l 100,0 "},
-        b:{draw:" l 0,100 "},
-        c:createBottomFace(index),
-        d:getInverseRightFace(index),
-      };
-      break;
-    case (row == numRows-1 && col == 0) :
-      object={
-        type:"infEsquerra",
-        a:getInverseBottomFace(index),
-        b:createRightFace(index),
-        c:{draw:" l -100,0 "},
-        d:{draw:" l 0,-100 "},
-      };
-      break;
-    case (row === numRows-1 && col === numCols-1) :
-      object={
-        type:"infDreta",
-        a:getInverseBottomFace(index),
-        b:{draw:" l 0,100 "},
-        c:{draw:" l -100,0 "},
-        d:getInverseRightFace(index),
-      };
-      break;
-    case (row === 0 ) :
-      object={
-        type:"superior",
-        a:{draw:" l 100,0 "},
-        b:createRightFace(index),
-        c:createBottomFace(index),
-        d:getInverseRightFace(index),
-      };
-      break;
-    case (col === 0 ) :
-      object={
-        type:"esquerra",
-        a:getInverseBottomFace(index),
-        b:createRightFace(index),
-        c:createBottomFace(index),
-        d:{draw:" l 0,-100 "},
-      };
-      break;
-    case (col === numCols-1 ) :
-      object={
-        type:"dreta",
-        a:getInverseBottomFace(index),
-        b:{draw:" l 0,100 "},
-        c:createBottomFace(index),
-        d:getInverseRightFace(index),
-      };
-      break;
-    case (row === numRows-1 ) :
-      object={
-        type:"inferior",
-        a:getInverseBottomFace(index),
-        b:createRightFace(index),
-        c:{draw:" l -100,0 "},
-        d:getInverseRightFace(index),
-      };
-      break;
-    default:
-      object={
-        type:"central",
-        a:getInverseBottomFace(index),
-        b:createRightFace(index),
-        c:createBottomFace(index),
-        d:getInverseRightFace(index),
-      };
-  }
-  object.col=col;
-  object.row=row;
-  object.index=index;
-  object.path=function(){return this.a.draw+this.b.draw+this.c.draw+this.d.draw+"z";};
-  return object;
-
-}
 
 
 function createSvg(piecePath,x,y,index){
-  let xmlns = "http://www.w3.org/2000/svg";
-  let svg=document.createElementNS(xmlns,"svg");
-  let idPattern="row"+x+"col"+y;
-  // let pattern='<defs><pattern id="'+ idPattern +'" patternUnits="userSpaceOnUse" width="'+(numCols*sizeOfPieces)+'" height="'+(numRows*sizeOfPieces)+'"><image href="'+host+model.urlImg+'" x="'+(x*-100+40)+'" y="'+(y*-100+40)+'"  /></pattern></defs>';
-  let pattern= `<defs>
-    <pattern id="${idPattern}" patternUnits="userSpaceOnUse" width="${numCols*sizeOfPieces}" height="${numRows*sizeOfPieces}">
-      <image href="${host}/${model.width}/${model.height}" x="${x*-100+40}" y="${y*-100+40}"></image>
-    </pattern>
-  </defs>`;
-  svg.innerHTML= pattern;
-  svg.setAttribute("width",sizeOfPieces * 180 / 100);
-  svg.setAttribute("height",sizeOfPieces * 180 / 100);
-  svg.setAttribute("viewBox","0 0 180 180");
-  let path=  document.createElementNS(xmlns,"path");
-  path.setAttribute("d","M40,40 "+piecePath);
-  path.setAttribute("fill","url(#"+idPattern+")");
-  path.style.fill="url(#"+idPattern+")";
-  svg.appendChild(path);
-  let move = document.createElement("DIV");
-  move.appendChild(svg);
-  move.className="move";
-  move.style.width = sizeOfPieces + "px";
-  move.style.height = sizeOfPieces + "px";
-  move.path=path;
-  // move.onmousemove=getPos;
-  move.onmousedown=getPos;
-  move.onclick=onDblClick;
-  move.ontouchstart=getPos;
-  move.onmouseout=stopTracking;  move.touchcancel=stopTracking;
-  //move.setAttribute("classangle","g0")
-  move.angle=0;
-  move.occupy= false;
-  move.position=function(){return {left:this.offsetLeft+(sizeOfPieces/2),top:this.offsetTop +(sizeOfPieces/2)};};
-  move.onmouseup=dropPiece;
-  move.ontouchend=dropPiece;
-  move.index=index;
-  //position indicates the position on the board
-  let position = document.createElement("DIV");
-  position.className="position";
-  position.style.width = sizeOfPieces + "px";
-  position.style.height = sizeOfPieces + "px";
-  position.index=index;
-  position.occupied=false;
-  document.querySelector("#container").appendChild(position);
-  position.appendChild(move);
-  move.style.zIndex = zIndex++;
-  move.zIndexPrevi=move.style.zIndex;
+
+  piecePath = "M40,40 " + piecePath;
+
+  let canvas = document.createElement('canvas');
+  canvas.width = 180;
+  canvas.height = 180;
+  let ctx = canvas.getContext("2d");
+  let mask = new Path2D(piecePath);
+  ctx.save();
+  ctx.clip(mask);
+  // let imgSrc = `${host}/${model.width}/${model.height}`;
+  let imgSrc = model.imageUrl;
+  let base_image = new Image();
+  // check if //domain.com or http://domain.com is a different origin
+  if (/^([\w]+\:)?\/\//.test(imgSrc) && imgSrc.indexOf(location.host) === -1) {
+    base_image.crossOrigin = "anonymous"; // or "use-credentials"
+  }
+  base_image.src = imgSrc;
+  base_image.onload = function(){
+    ctx.drawImage(base_image, x*-100+40, y*-100+40);
+
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.stroke(mask);
+
+    // get png data url
+    let pngUrl = canvas.toDataURL();
+
+    let image = new Image();
+    image.src = pngUrl;
+    image.className = "puzzle-piece-image";
+    image.style.width = sizeOfPieces * 180 /  + "px";
+    image.style.height = sizeOfPieces * 180 / 100 + "px";
+
+    puzzleImagesList[x+'-'+y]  = image;
+    imagesLoaded++;
+
+    if(imagesLoaded === model.numRows * model.numCols ) {
+      placePuzzleImagesInPlace();
+    }
+
+    // console.log(image);
+
+    // document.body.appendChild(image);
+
+
+  };
+
+
+
+
+  // let xmlns = "http://www.w3.org/2000/svg";
+  // let svg=document.createElementNS(xmlns,"svg");
+  // let idPattern="row"+x+"col"+y;
+  // // let pattern='<defs><pattern id="'+ idPattern +'" patternUnits="userSpaceOnUse" width="'+(numCols*sizeOfPieces)+'" height="'+(numRows*sizeOfPieces)+'"><image href="'+host+model.urlImg+'" x="'+(x*-100+40)+'" y="'+(y*-100+40)+'"  /></pattern></defs>';
+  // let pattern= `<defs>
+  //   <pattern id="${idPattern}" patternUnits="userSpaceOnUse" width="${numCols*sizeOfPieces}" height="${numRows*sizeOfPieces}">
+  //     <image href="${imageSrc}" x="${x*-100+40}" y="${y*-100+40}"></image>
+  //   </pattern>
+  // </defs>`;
+  // svg.innerHTML= pattern;
+  // svg.setAttribute("width",sizeOfPieces * 180 / 100);
+  // svg.setAttribute("height",sizeOfPieces * 180 / 100);
+  // svg.setAttribute("viewBox","0 0 180 180");
+  // let path=  document.createElementNS(xmlns,"path");
+  // path.setAttribute("d","M40,40 "+piecePath);
+  // path.setAttribute("fill","url(#"+idPattern+")");
+  // path.style.fill="url(#"+idPattern+")";
+  // svg.appendChild(path);
+
 
 
 }
+
+function placePuzzleImagesInPlace() {
+  window.puzzleImagesList = puzzleImagesList;
+
+  let index = 0;
+  for (let row=0; row<numRows; row++){
+    for (let col=0; col<numCols; col++){
+
+      let image = puzzleImagesList[col+'-'+row];
+      let move = document.createElement("DIV");
+      move.appendChild(image);
+      move.className="move";
+      move.style.width = sizeOfPieces + "px";
+      move.style.height = sizeOfPieces + "px";
+      // move.path=path;
+      // move.onmousemove=getPos;
+      move.onmousedown=getPos;
+      move.onclick=onDblClick;
+      move.ontouchstart=getPos;
+      move.onmouseout=stopTracking;  move.touchcancel=stopTracking;
+      //move.setAttribute("classangle","g0")
+      move.angle=0;
+      move.occupy= false;
+      move.position=function(){return {left:this.offsetLeft+(sizeOfPieces/2),top:this.offsetTop +(sizeOfPieces/2)};};
+      move.onmouseup=dropPiece;
+      move.ontouchend=dropPiece;
+      move.index=index;
+      //position indicates the position on the board
+      let position = document.createElement("DIV");
+      position.className="position";
+      position.style.width = sizeOfPieces + "px";
+      position.style.height = sizeOfPieces + "px";
+      position.index=index;
+      position.occupied=false;
+      document.querySelector("#container").appendChild(position);
+      position.appendChild(move);
+      move.style.zIndex = zIndex++;
+      move.zIndexPrevi=move.style.zIndex;
+
+      index++;
+    }
+  }
+
+
+}
+
+
+
 var i, element;
 var models=[
 
@@ -284,34 +271,58 @@ function selectModel(i){
   document.querySelector("#tap").style.display='none';
 }
 
-function createListModels(){
-  // var HTMLmodels="<h2>Select model</h2>";
-  let HTMLmodels = document.createElement('h2');
-  HTMLmodels.innerHTML = "Select model";
-  document.getElementById("models").appendChild(HTMLmodels);
+async function createListModels(){
+  // const response = fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`);
+  // console.log('response', response)
+  // const json = JSON.parse(response);
 
-  for (let i=0; i < models.length; i++) {
-    let e = models[i];
-    e.imageUrl = `${host}/${e.width}/${e.height}`;
+  const listOfAvailableImages = await fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`)
+    .then(response => response.json())
+    .then( data => {
 
-    let div = document.createElement('div');
-    div.innerHTML = `
+      // var HTMLmodels="<h2>Select model</h2>";
+      let HTMLmodels = document.createElement('h2');
+      HTMLmodels.innerHTML = "Select model";
+      document.getElementById("models").appendChild(HTMLmodels);
+
+      for (let i=0; i < models.length; i++) {
+        let e = models[i];
+        e.imageUrl = `${host}/id/${data[getRandomImageId(data.length)].id}/${e.width}/${e.height}`;
+
+        let div = document.createElement('div');
+        div.innerHTML = `
         <b>${(i+1)}</b><br>
         ${e.numCols * e.numRows} pieces<br>
         <img height="${(e.numRows/3*100)}" src="${e.imageUrl}" width="${e.numcols/3*100}"><br>
         <small>${e.numCols*100} x ${e.numRows*100}</small>
       `;
-    div.addEventListener("click", () => selectModel(i));
-    document.getElementById("models").appendChild(div);
+        div.addEventListener("click", () => selectModel(i));
+        document.getElementById("models").appendChild(div);
 
-  }
+      }
+
+      createPuzzle(model);
+
+    });
+
+
 
 }
 
+function getRandomImageId(max = 10) {
+  return Math.round(Math.random() * max);
+}
 
 function createPuzzle(model){
+  // imageSrc = `${host}/id/${getRandomImageId()}/${model.width}/${model.height}`;
+
   pecaAlSeuLloc=0;
-  document.getElementById("container").innerHTML="";
+  // document.getElementById("container").innerHTML="";
+  let child = document.getElementById("container").getElementsByClassName("position")[0];
+  while (child) {
+    document.getElementById("container").removeChild(child);
+    child = document.getElementById("container").getElementsByClassName("position")[0];
+  }
   director=[];
   let index=0;
   pezaSeleccionada= false;
@@ -332,10 +343,17 @@ function createPuzzle(model){
   }
 
   document.getElementById("container").style.width=numCols*sizeOfPieces +"px";
-  document.getElementById("container").style.backgroundPositionY=sizeOfPieces*model.numRows+"px";
+  document.getElementById("container").style.height=numRows*sizeOfPieces +"px";
+  document.getElementById("container").classList.remove('puzzleFinished');
+  // document.getElementById("container").style.backgroundPositionY=sizeOfPieces*model.numRows+"px";
+  console.log(model.imageUrl);
+  document.getElementById("backgroundImage").style.backgroundImage = `url(${model.imageUrl})`;
+
+  puzzleImagesList = {};
+  imagesLoaded = 0;
   for (let row=0; row<numRows; row++){
     for (let col=0; col<numCols; col++){
-      var dades=pieceData(row,col,index);
+      var dades=pieceData(row,col,index, numRows, numCols, director);
       director.push(dades);
       createSvg(dades.path(),col,row,index);
       index++;
@@ -345,18 +363,26 @@ function createPuzzle(model){
 
 document.addEventListener("DOMContentLoaded", function() {
   model=models[1];
-  createPuzzle(model);
+
+  // let image = new Image();
+  // image.src = `${host}/${model.width}/${model.height}`;
+  // image.id = "puzzleImage";
+  // document.body.appendChild(image);
+
   createListModels();
-  document.getElementById("seeModel").onmouseover=function(){
-    document.getElementById("container").style.backgroundImage="url("+model.imageUrl+")";
-    document.getElementById("container").style.backgroundPositionY=0;
-  };
-  document.getElementById( "seeModel").onmouseout=function(){
-    document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
-  };
+
+
+  // document.getElementById("seeModel").onmouseover=function(){
+  //   document.getElementById("container").style.backgroundImage="url("+model.imageUrl+")";
+  //   document.getElementById("container").style.opacity="0.5";
+  // };
+  // document.getElementById( "seeModel").onmouseout=function(){
+  //   document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
+  // };
   document.getElementById("start").onclick= start;
   document.getElementById("arrangePieces").onclick = arrangePieces;
   document.getElementById("modelsButton").onclick = showModels;
+  document.getElementById("seeImage").onclick = seeImage;
   var botoFullScreen=document.getElementById("fullscreen");
   botoFullScreen.fullScreen=false;
   botoFullScreen.onclick=function(){
@@ -385,14 +411,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function scrollBodyTop(){return document.body.scrollTop|| document.documentElement.scrollTop;}
 function final(){
-  document.querySelectorAll(".move").forEach(function(e,i){
-    e.path.style.strokeWidth="1px";
-    e.path.style.stroke="black";
-  });
+  // document.querySelectorAll(".move").forEach(function(e,i){
+  //   e.path.style.strokeWidth="1px";
+  //   e.path.style.stroke="black";
+  // });
+  document.getElementById("container").classList.add('puzzleFinished');
   document.querySelector("#modelsButton").style.height="";
   // document.querySelector("#tap").style.height="";
   // document.querySelector("#tap").style.opacity=0;
-  document.querySelector("#seeModel").style.top="-35px";
+  // document.querySelector("#seeModel").style.top="-35px";
   document.getElementById("models").style.height=0;
   document.getElementById("time").innerHTML=timeEnd;
   document.getElementById("time").style.opacity=1;
@@ -484,6 +511,10 @@ function girar(){
 }
 function takePiece(e){
 
+  if(e.target.parentElement.className === 'position') {
+    return;
+  }
+
   pezaSeleccionada=this;
   offset = [
     this.offsetLeft - e.clientX,
@@ -513,10 +544,11 @@ function fixPiece(p){
 
 
   p.style.transition=".1s";
-  p.path.style.strokeWidth=".5px";
+  // p.path.style.strokeWidth=".5px";
   setTimeout(function(){p.style.transform="scale(1.05)";},50);
   setTimeout(function(){p.style.transform="scale(1)";},150);
-  setTimeout(function(){p.path.style.strokeWidth="2px"; p.style.zIndex= 0;},250);
+  // setTimeout(function(){p.path.style.strokeWidth="2px"; p.style.zIndex= 0;},250);
+  setTimeout(function(){p.style.filter = "drop-shadow(black 0px 0px 0)"; p.style.zIndex= 0;},250);
   pecaAlSeuLloc++;
   if (pecaAlSeuLloc == numRows * numCols ){
     timeEnd = Math.floor(((new Date).getTime()-timeInitial)/1000);
@@ -533,20 +565,21 @@ function fixPiece(p){
   }
 }
 function placePiece(p){
-
-  p.style.zIndex = zIndex++;
-  p.zIndexPrevi=p.style.zIndex;
-  document.querySelectorAll(".position").forEach (function(e,i){
-    if ((p.position().left>e.offsetLeft && p.position().left<e.offsetLeft+sizeOfPieces)&&(p.position().top>e.offsetTop && p.position().top<e.offsetTop+sizeOfPieces) && !e.occupied ){
-      p.style.left=e.offsetLeft+"px";
-      p.style.top=e.offsetTop+"px";
-      e.occupied= true;
-      p.occupy = i;
-      if (e.index == p.index && p.getAttribute("classangle")=="g0")fixPiece(p);
-
-    }
-  });
-
+  if(p.style) {
+    p.style.zIndex = zIndex++;
+    p.zIndexPrevi=p.style.zIndex;
+    document.querySelectorAll(".position").forEach (function(e,i){
+      let offsetLeft = e.offsetLeft + document.getElementById("container").offsetLeft;
+      let offsetTop = e.offsetTop + document.getElementById("container").offsetTop;
+      if ((p.position().left>offsetLeft && p.position().left<offsetLeft+sizeOfPieces)&&(p.position().top>offsetTop && p.position().top<offsetTop+sizeOfPieces) && !e.occupied ){
+        p.style.left=offsetLeft+"px";
+        p.style.top=offsetTop+"px";
+        e.occupied= true;
+        p.occupy = i;
+        if (e.index == p.index && p.getAttribute("classangle")=="g0")fixPiece(p);
+      }
+    });
+  }
 }
 function dropPiece(){
 
@@ -556,8 +589,8 @@ function dropPiece(){
   pezaSeleccionada=false;
 
 }
-document.addEventListener('mousemove', drag, true);
-document.addEventListener("touchmove", drag, true);
+document.addEventListener('mousemove', drag, {passive: false});
+document.addEventListener("touchmove", drag, {passive: false});
 
 function drag(e) {
   // clickCount=0;
@@ -577,8 +610,11 @@ function drag(e) {
     pezaSeleccionada.style.left = (mousePosition.x + offset[0]) + 'px';
     pezaSeleccionada.style.top  = (mousePosition.y + offset[1]) + 'px';
 
-
+    e.preventDefault();
+    e.stopPropagation();
   }
+
+
 }
 
 
@@ -644,5 +680,17 @@ function getRandomInt(min, max) {
 function stopTracking(){
 
 
+
+}
+
+function seeImage() {
+  let element = document.getElementById("backgroundImage");
+  if (element.classList.contains('checked')) {
+    element.classList.remove('checked');
+    this.classList.remove('checked')
+  } else {
+    element.classList.add('checked');
+    this.classList.add('checked');
+  }
 
 }

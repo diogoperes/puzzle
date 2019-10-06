@@ -9,6 +9,13 @@
 <body>
 <h1>Puzzle maker <span>1.0</span></h1>
 <div id="seeModel">see model</div>
+<!--<div id="seeImage">-->
+  <!--<label>-->
+    <!--<input type="checkbox" value="1"><span>See Image</span>-->
+  <!--</label>-->
+<!--</div>-->
+<input id="seeImage" type="button" value="See Image">
+<!--<input type="checkbox" value="1"><span>See Image</span>-->
 <button id="arrangePieces">Arrange</button>
 <div id="fullscreen" class="fullscreen"></div>
 <input id="modelsButton" type="button" value="Models"><input id="start" type="button" value="Start">
@@ -18,7 +25,9 @@
 <div style="margin-left: 10px">Drag to place.<br>
   Double click to rotate.
 </div>
-<div id="container"></div>
+<div id="container">
+  <div id="backgroundImage"></div>
+</div>
 <div id="time"></div>
 
 <svg id="base" width="0" height="0">
