@@ -4,56 +4,128 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <link rel=icon href="public/icon.png">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
   <title>Sliding Puzzle</title>
 </head>
 <body>
-<h1>Puzzle maker <span>1.0</span></h1>
-<div id="seeModel">see model</div>
+
+<!--<div id="seeModel">see model</div>-->
 <!--<div id="seeImage">-->
   <!--<label>-->
     <!--<input type="checkbox" value="1"><span>See Image</span>-->
   <!--</label>-->
 <!--</div>-->
-<input id="seeImage" type="button" value="See Image">
-<!--<input type="checkbox" value="1"><span>See Image</span>-->
-<button id="arrangePieces">Arrange</button>
-<div id="fullscreen" class="fullscreen"></div>
-<input id="modelsButton" type="button" value="Models"><input id="start" type="button" value="Start">
-<div id="tap">
+
+<header>
+  <div class="title"><div>Random Puzzle</div></div>
+  <div class="buttons-container">
+    <!--<button id="start" type="button">-->
+      <!--<i class="far fa-play-circle"></i>-->
+      <!--<p>Start</p>-->
+    <!--</button>-->
+    <button id="seeImage" type="button">
+      <i class="far fa-image"></i>
+      <p>See Image</p>
+    </button>
+    <!--<input type="checkbox" value="1"><span>See Image</span>-->
+    <!--<button id="arrangePieces">Arrange</button>-->
+    <button id="arrangePieces" type="button">
+      <i class="far fa-clone"></i>
+      <p>Arrange</p>
+    </button>
+    <!--<div id="fullscreen" class="fullscreen"></div>-->
+    <button id="fullscreen" type="button" class="fullscreen">
+      <i class="fas fa-expand"></i>
+      <i class="fas fa-compress"></i>
+      <p>Full Screen</p>
+    </button>
+    <!--<button id="modelsButton" type="button">-->
+      <!--<i class="fas fa-border-all"></i>-->
+      <!--<p>Models</p>-->
+    <!--</button>-->
+    <!--<div id="tap">-->
+      <!--<div id="models"></div>-->
+    <!--</div>-->
+
+    <div class="menu-btn-container">
+      <button class="menu-btn" id="menuButton"  type="button">
+        <div class="menu-btn-icon"></div>
+        <p>Menu</p>
+      </button>
+
+    </div>
+  </div>
+</header>
+
+
+
+
+
+<div id="menu">
+  <div class="difficulty-title">Difficulty</div>
+  <div class="radio-toolbar">
+    <input type="radio" id="veryEasy" name="radioDifficulty" value="veryEasy" rows="2" cols="2">
+    <label for="veryEasy">Very Easy (4)</label>
+
+    <input type="radio" id="easy" name="radioDifficulty" value="easy" rows="3" cols="3">
+    <label for="easy">Easy (9)</label>
+
+    <input type="radio" id="medium" name="radioDifficulty" value="medium" rows="4" cols="4" checked>
+    <label for="medium">Medium (16)</label>
+
+    <input type="radio" id="hard" name="radioDifficulty" value="hard" rows="5" cols="5">
+    <label for="hard">Hard (25)</label>
+
+    <input type="radio" id="veryHard" name="radioDifficulty" value="veryHard" rows="5" cols="7">
+    <label for="veryHard">Very Hard (35)</label>
+
+    <input type="radio" id="extreme" name="radioDifficulty" value="extreme" rows="6" cols="8">
+    <label for="extreme">Extreme (48)</label>
+  </div>
+  <div class="difficulty-title">Puzzles</div>
   <div id="models"></div>
 </div>
+
+
 <div style="margin-left: 10px">Drag to place.<br>
   Double click to rotate.
 </div>
 <div id="container">
   <div id="backgroundImage"></div>
 </div>
+<div class="startButtonContainer">
+  <button id="start" type="button">
+    <i class="far fa-play-circle"></i>
+    <p>Start</p>
+  </button>
+</div>
+
 <div id="time"></div>
 
-<svg id="base" width="0" height="0">
-  <defs>
-    <filter id="g0">
-      <feOffset result="offOut" in="SourceAlpha" dx="4" dy="4"/>
-      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>
-      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
-    </filter>
-    <filter id="g1">
-      <feOffset result="offOut" in="SourceAlpha" dx="4" dy="-4"/>
-      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>
-      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
-    </filter>
-    <filter id="g2">
-      <feOffset result="offOut" in="SourceAlpha" dx="-4" dy="-4"/>
-      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>
-      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
-    </filter>
-    <filter id="g3">
-      <feOffset result="offOut" in="SourceAlpha" dx="-4" dy="4"/>
-      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>
-      <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
-    </filter>
-  </defs>
-</svg>
+<!--<svg id="base" width="0" height="0">-->
+  <!--<defs>-->
+    <!--<filter id="g0">-->
+      <!--<feOffset result="offOut" in="SourceAlpha" dx="4" dy="4"/>-->
+      <!--<feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>-->
+      <!--<feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>-->
+    <!--</filter>-->
+    <!--<filter id="g1">-->
+      <!--<feOffset result="offOut" in="SourceAlpha" dx="4" dy="-4"/>-->
+      <!--<feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>-->
+      <!--<feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>-->
+    <!--</filter>-->
+    <!--<filter id="g2">-->
+      <!--<feOffset result="offOut" in="SourceAlpha" dx="-4" dy="-4"/>-->
+      <!--<feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>-->
+      <!--<feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>-->
+    <!--</filter>-->
+    <!--<filter id="g3">-->
+      <!--<feOffset result="offOut" in="SourceAlpha" dx="-4" dy="4"/>-->
+      <!--<feGaussianBlur result="blurOut" in="offOut" stdDeviation="5"/>-->
+      <!--<feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>-->
+    <!--</filter>-->
+  <!--</defs>-->
+<!--</svg>-->
 
 </body>
 </html>
