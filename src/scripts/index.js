@@ -32,6 +32,8 @@ let pezaSeleccionada= false;
 let puzzleImagesList = {};
 let imagesLoaded = 0;
 
+const seeImage_btn = document.getElementById("seeImage");
+
 function createPiece(piecePath,x,y,index){
 
   piecePath = "M40,40 " + piecePath;
@@ -46,13 +48,13 @@ function createPiece(piecePath,x,y,index){
   // let imgSrc = `${host}/${model.width}/${model.height}`;
   // let imgSrc = model.imageUrl;
 
-  console.log('numCols', numCols);
-  console.log('numRows', numRows);
-  console.log('sizeOfPieces', sizeOfPieces);
+  // console.log('numCols', numCols);
+  // console.log('numRows', numRows);
+  // console.log('sizeOfPieces', sizeOfPieces);
 
   let imgSrc = `${host}/id/${idOfImageSelected}/${numCols*100}/${numRows*100}`;
 
-  console.log('imgSrc', imgSrc);
+  // console.log('imgSrc', imgSrc);
 
   let base_image = new Image();
   // check if //domain.com or http://domain.com is a different origin
@@ -219,7 +221,10 @@ function placePuzzleImagesInPlace() {
 
 function selectModel(i){
   // document.getElementById("models").style.height=0;
-  document.querySelector("#start").style.height="";;
+  document.querySelector("#start").style.height="";
+  seeImage_btn.style.height="0";
+  document.getElementById("arrangePieces").style.height="0";
+
   document.querySelector("#menu").classList.remove('active');
   document.querySelector("#menuButton").classList.remove('active');
 
@@ -234,12 +239,12 @@ function selectModel(i){
   // document.querySelector("#tap").style.display='none';
 }
 
-async function createListModels(){
+function createListModels(){
   // const response = fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`);
   // console.log('response', response)
   // const json = JSON.parse(response);
 
-  const listOfAvailableImages = await fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`)
+  return fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`)
     .then(response => response.json())
     .then( data => {
 
@@ -248,12 +253,16 @@ async function createListModels(){
       // HTMLmodels.innerHTML = "Select model";
       // document.getElementById("models").appendChild(HTMLmodels);
 
+      let indexOfImageToLoad = getRandomInt(0., data.length - numberOfImagesToLoad);
+
       for (let i=0; i < numberOfImagesToLoad; i++) {
         // let e = models[i];
         // e.width = e.numCols* 100;
         // e.height = e.numRows * 100;
         // e.imageUrl = `${host}/id/${data[getRandomImageId(data.length)].id}/${e.width}/${e.height}`;
-        let id = data[getRandomImageId(data.length)].id;
+        // let id = data[getRandomImageId(data.length)].id;
+        let id = data[indexOfImageToLoad].id;
+        indexOfImageToLoad++;
         if(i === 0) idOfImageSelected = id;
 
         let img = new Image();
@@ -359,40 +368,39 @@ document.addEventListener("DOMContentLoaded", function() {
   // document.getElementById("seeModel").onmouseover=function(){
   //   document.getElementById("container").style.backgroundImage="url("+model.imageUrl+")";
   //   document.getElementById("container").style.opacity="0.5";
+  //   document.getElementById("container").style.opacity="0.5";
   // };
   // document.getElementById( "seeModel").onmouseout=function(){
   //   document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
   // };
+
   document.getElementById("start").onclick= start;
   document.getElementById("arrangePieces").onclick = arrangePieces;
+  document.getElementById("arrangePieces").style.height="0";
   // document.getElementById("modelsButton").onclick = showModels;
-  document.getElementById("seeImage").onclick = seeImage;
-  let botoFullScreen=document.getElementById("fullscreen");
-  botoFullScreen.fullScreen=false;
-  botoFullScreen.onclick=function(){
-    if (this.fullScreen){
+  seeImage_btn.onclick = seeImage;
+  seeImage_btn.style.height="0";
+  let buttonFullScreen=document.getElementById("fullscreen");
+  // buttonFullScreen.fullScreen=false;
+  buttonFullScreen.onclick=function(){
+    let isFullscreen = !!document.fullscreen;
+    let buttonFullScreen=document.getElementById("fullscreen");
+    if ( isFullscreen ){
       if (document.msExitFullscreen) {
         document.msExitFullscreen();
       }else{
         document.exitFullscreen();
       }
-      this.className="fullscreen";
+      buttonFullScreen.className="fullscreen";
     }else{
       if (document.body.msRequestFullscreen) {
         document.body.msRequestFullscreen();
       }else{
         document.body.requestFullscreen();
       }
-      this.className="fullscreenOff";
+      buttonFullScreen.className="fullscreenOff";
     }
-    this.fullScreen=!this.fullScreen;
   };
-
-  // attachFastClick(document.body);
-
-  // attachFastClick(document.body);
-
-  console.log('radio', document.getElementsByName('radioDifficulty'));
 
   let radios = document.getElementsByName('radioDifficulty');
   for(let i = 0, max = radios.length; i < max; i++) {
@@ -403,6 +411,16 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
 });
+
+document.addEventListener("fullscreenchange", function(){
+    let isFullscreen = !!document.fullscreen;
+    let buttonFullScreen=document.getElementById("fullscreen");
+    if ( isFullscreen ){
+      buttonFullScreen.className="fullscreenOff";
+    }else{
+      buttonFullScreen.className="fullscreen";
+    }
+  }, false);
 
 function scrollBodyTop(){return document.body.scrollTop|| document.documentElement.scrollTop;}
 function final(){
@@ -417,7 +435,12 @@ function final(){
   // document.querySelector("#seeModel").style.top="-35px";
   // document.getElementById("models").style.height=0;
   document.getElementById("time").innerHTML=timeEnd;
-  document.getElementById("time").style.opacity=1;
+  document.getElementById("time").style.opacity = "1";
+
+  seeImage_btn.style.height="0";
+  document.getElementById("arrangePieces").style.height="0";
+  document.getElementById("backgroundImage").classList.remove('checked');
+  seeImage_btn.classList.remove('checked');
 
 }
 // function showModels(){
@@ -430,6 +453,8 @@ function final(){
 // }
 function start(){
   document.querySelector("#start").style.height=0;
+  document.getElementById("arrangePieces").style.height="";
+  seeImage_btn.style.height="";
   // document.querySelector("#modelsButton").style.height=0;
   // document.querySelector("#seeModel").style.top="10px";
   // document.querySelector("#tap").style.height=0;
@@ -501,7 +526,7 @@ function getPositionToSpawn() {
   }
 }
 
-function girar(){
+function turn(){
 
   this.angle++;
 
@@ -561,8 +586,8 @@ function fixPiece(p){
     let seconds = timeEnd - hours * 3600 - minutes *60;
     seconds= seconds<10 ? "0"+seconds : seconds;
     timeEnd ="Time spent: " +
-      +((hours>0) ? hours +"h " :"")+
-      + minutes +"' " + seconds +"''";
+      +((hours>0) ? hours +":" :"")+
+      + minutes +":" + seconds;
     document.getElementById("time").style.opacity=0;
     setTimeout(final,500);
   }
@@ -634,7 +659,7 @@ function getPos(e){
     takePiece.call(this, e);
     // this.onmousedown=takePiece;
     // this.touchstart=takePiece;
-    // this.ondblclick=girar;
+    // this.ondblclick=turn;
     // this.style.cursor="move";
 
     this.style.zIndex=zIndex+1;
@@ -670,7 +695,7 @@ function onDblClick(e) {
   } else if (clickCount === 2) {
     clearTimeout(singleClickTimer);
     clickCount = 0;
-    girar.call(this);
+    turn.call(this);
   }
 }
 
@@ -690,7 +715,7 @@ function seeImage() {
   let element = document.getElementById("backgroundImage");
   if (this.classList.contains('checked')) {
     element.classList.remove('checked');
-    this.classList.remove('checked')
+    this.classList.remove('checked');
   } else {
     element.classList.add('checked');
     this.classList.add('checked');
@@ -708,4 +733,16 @@ document.getElementById('menuButton').addEventListener('click', (e) => {
     element.classList.add('active');
     menuElement.classList.add('active');
   }
-})
+  e.stopPropagation();
+});
+
+document.getElementById('menu').addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+document.addEventListener("click", function(){
+  let menuElement = document.getElementById('menu');
+  let menuButtonElement = document.getElementById('menuButton');
+  menuElement.classList.remove('active');
+  menuButtonElement.classList.remove('active');
+});
