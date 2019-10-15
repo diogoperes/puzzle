@@ -67,10 +67,10 @@
     <input type="radio" id="veryEasy" name="radioDifficulty" value="veryEasy" rows="2" cols="2">
     <label for="veryEasy">Very Easy (4)</label>
 
-    <input type="radio" id="easy" name="radioDifficulty" value="easy" rows="3" cols="3">
+    <input type="radio" id="easy" name="radioDifficulty" value="easy" rows="3" cols="3" checked>
     <label for="easy">Easy (9)</label>
 
-    <input type="radio" id="medium" name="radioDifficulty" value="medium" rows="4" cols="4" checked>
+    <input type="radio" id="medium" name="radioDifficulty" value="medium" rows="4" cols="4">
     <label for="medium">Medium (16)</label>
 
     <input type="radio" id="hard" name="radioDifficulty" value="hard" rows="5" cols="5">
@@ -87,8 +87,9 @@
 </div>
 
 
-<div style="margin-left: 10px">Drag to place.<br>
-  Double click to rotate.
+<div class="instructions">
+  <p>Drag to place.</p>
+  <p>Double click to rotate.</p>
 </div>
 <div id="container">
   <div id="backgroundImage"></div>

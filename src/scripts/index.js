@@ -4,7 +4,7 @@ import {pieceData} from './puzzlePieceHelper.js';
 
 // console.log('webpack starterkit');
 
-const numberOfImagesToLoad = 10;
+const numberOfImagesToLoad = 32;
 let zIndex=1;
 // var host='http://www.wdisseny.com/puzzle/';
 let host='http://picsum.photos';
@@ -25,6 +25,7 @@ let clickCount = 0;
 let singleClickTimer;
 
 let sizeOfPieces = 100;
+let maxSizeOfPieces = 100;
 
 let pezaSeleccionada= false;
 
@@ -62,9 +63,9 @@ function createPiece(piecePath,x,y,index){
   base_image.onload = function(){
     ctx.drawImage(base_image, x*-100+40, y*-100+40);
 
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
-    ctx.stroke(mask);
+    // ctx.strokeStyle = 'black';
+    // ctx.lineWidth = 2;
+    // ctx.stroke(mask);
 
     // get png data url
     let pngUrl = canvas.toDataURL();
@@ -75,7 +76,7 @@ function createPiece(piecePath,x,y,index){
     image.style.width = sizeOfPieces * 180 /  + "px";
     image.style.height = sizeOfPieces * 180 / 100 + "px";
 
-    puzzleImagesList[x+'-'+y]  = image;
+    puzzleImagesList[x+'-'+y]  = {image: image, path: piecePath};
     imagesLoaded++;
 
     if(imagesLoaded === numRows * numCols ) {
@@ -98,9 +99,15 @@ function placePuzzleImagesInPlace() {
   for (let row=0; row<numRows; row++){
     for (let col=0; col<numCols; col++){
 
-      let image = puzzleImagesList[col+'-'+row];
+      let image = puzzleImagesList[col+'-'+row].image;
       let move = document.createElement("DIV");
+
+      move.innerHTML = `<svg viewbox="0 0 180 180" width="${sizeOfPieces * 180 / 100}" height="${sizeOfPieces * 180 / 100}"> 
+        <path d="${puzzleImagesList[col+'-'+row].path}"></path>
+      </svg>`;
+
       move.appendChild(image);
+
       move.className="move";
       move.style.width = sizeOfPieces + "px";
       move.style.height = sizeOfPieces + "px";
@@ -128,6 +135,24 @@ function placePuzzleImagesInPlace() {
       position.appendChild(move);
       move.style.zIndex = zIndex++;
       move.zIndexPrevi=move.style.zIndex;
+
+      // let xmlns = "http://www.w3.org/2000/svg";
+      // let svg = document.createElementNS(xmlns, "svg");
+      // let path = document.createElementNS(xmlns, 'path');
+      // svg.setAttribute('viewbox', '0 0 180 180');
+      // svg.setAttribute('width', sizeOfPieces * 180 / 100);
+      // svg.setAttribute('height', sizeOfPieces * 180 / 100);
+      // // svg.setAttribute('x', '0');
+      // // svg.setAttribute('y', '0');
+      // svg.setAttribute('preserveAspectRatio', 'none');
+      // path.setAttribute('d', puzzleImagesList[col+'-'+row].path);
+      // // svg.appendChild(path);
+      // svg.innerHTML = `<path d="${puzzleImagesList[col+'-'+row].path}"></path>`;
+      //
+      // move.innerHTML = `<svg viewbox="0 0 180 180" width="${sizeOfPieces * 180 / 100}" height="${sizeOfPieces * 180 / 100}">
+      //   <path d="${puzzleImagesList[col+'-'+row].path}"></path>
+      // </svg>`;
+      // move.appendChild(svg);
 
       index++;
     }
@@ -285,7 +310,7 @@ function createPuzzle(){
   // numRows=model.numRows;
   // numCols=model.numCols;
 
-  sizeOfPieces = 100;
+  sizeOfPieces = maxSizeOfPieces;
   //adjust piece size to not overflow screen width
   if(window.innerWidth < numCols * sizeOfPieces + sizeOfPieces) {
     sizeOfPieces = Math.floor( window.innerWidth / numCols - 1 );
@@ -526,7 +551,7 @@ function fixPiece(p){
   setTimeout(function(){p.style.transform="scale(1.05)";},50);
   setTimeout(function(){p.style.transform="scale(1)";},150);
   // setTimeout(function(){p.path.style.strokeWidth="2px"; p.style.zIndex= 0;},250);
-  setTimeout(function(){p.style.filter = "drop-shadow(black 0px 0px 0)"; p.style.zIndex= 0;},250);
+  // setTimeout(function(){p.style.filter = "drop-shadow(black 0px 0px 0)"; p.style.zIndex= 0;},250);
   pecaAlSeuLloc++;
   if (pecaAlSeuLloc == numRows * numCols ){
     timeEnd = Math.floor(((new Date).getTime()-timeInitial)/1000);

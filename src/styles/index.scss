@@ -126,7 +126,10 @@ h2{
 .move svg>path{
   fill:url(#xina);
   stroke:#001111;
-  stroke-width:1px;
+  stroke-width: 2px;
+}
+.position .move svg>path{
+  stroke:#ffffff;
 }
 [classangle=g0] path{
   filter:url(#g0);
@@ -155,10 +158,9 @@ h2{
 
 }*/
 #models{
-
-  height: 0;
   text-align:center;
-  height: calc(100vh - 100px);
+  //height: calc(100vh - 100px);
+  flex: 1 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -271,6 +273,8 @@ h2{
   top: 0;
   left: -100%;
   transition: left 500ms ease-in-out;
+  display: flex;
+  flex-direction: column;
 }
 
 #menu.active {
@@ -420,6 +424,17 @@ h2{
   }
 }*/
 
+.instructions {
+  margin-left: 10px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.instructions p {
+  margin: 0;
+  display: inline-block;
+  color: #8a8a8a;
+}
+
 @media screen and (max-width: 820px) {
   header {
     padding: 0px 5px;
@@ -440,6 +455,20 @@ h2{
     display: flex;
     justify-content: flex-end;
     max-width: 330px;
+  }
+  .radio-toolbar label {
+    padding: 6px 2px;
+    font-size: 16px;
+    border: 1px solid #444;
+    width: 110px;
+    margin: 1px;
+  }
+
+  @media screen and (max-width: 530px) {
+    #models img {
+      width: 100px;
+      height: 100px;
+    }
   }
 }
 
