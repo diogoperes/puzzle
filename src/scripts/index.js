@@ -27,10 +27,13 @@ let singleClickTimer;
 let sizeOfPieces = 100;
 let maxSizeOfPieces = 100;
 
-let pezaSeleccionada= false;
+let selectedPiece= false;
+let realSelectedPiece = false;
 
 let puzzleImagesList = {};
 let imagesLoaded = 0;
+
+let piecesMatrix = [];
 
 const seeImage_btn = document.getElementById("seeImage");
 
@@ -97,8 +100,11 @@ function createPiece(piecePath,x,y,index){
 function placePuzzleImagesInPlace() {
   window.puzzleImagesList = puzzleImagesList;
 
+  piecesMatrix = [];
+
   let index = 0;
   for (let row=0; row<numRows; row++){
+    let rowList = [];
     for (let col=0; col<numCols; col++){
 
       let image = puzzleImagesList[col+'-'+row].image;
@@ -137,7 +143,10 @@ function placePuzzleImagesInPlace() {
       position.appendChild(move);
       move.style.zIndex = zIndex++;
       move.zIndexPrevi=move.style.zIndex;
+      move.x = col;
+      move.y = row;
 
+      rowList.push(move);
       // let xmlns = "http://www.w3.org/2000/svg";
       // let svg = document.createElementNS(xmlns, "svg");
       // let path = document.createElementNS(xmlns, 'path');
@@ -158,6 +167,7 @@ function placePuzzleImagesInPlace() {
 
       index++;
     }
+    piecesMatrix.push(rowList);
   }
 
 
@@ -315,7 +325,8 @@ function createPuzzle(){
 
   director=[];
   let index=0;
-  pezaSeleccionada= false;
+  selectedPiece= false;
+  realSelectedPiece= false;
   // numRows=model.numRows;
   // numCols=model.numCols;
 
@@ -537,23 +548,23 @@ function turn(){
 
 
 }
-function takePiece(e){
 
-  if(e.target.parentElement.className === 'position') {
-    return;
-  }
+function getCoords(elem) { // crossbrowser version
+  let box = elem.getBoundingClientRect();
 
-  pezaSeleccionada=this;
-  offset = [
-    this.offsetLeft - e.clientX,
-    this.offsetTop - e.clientY
-  ];
+  let body = document.body;
+  let docEl = document.documentElement;
 
-  if(typeof this.occupy == "number") {
-    document.querySelectorAll(".position")[this.occupy].occupied= false;
-    this.occupy=false;
-  }
+  let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+  let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
 
+  let clientTop = docEl.clientTop || body.clientTop || 0;
+  let clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+  let top  = box.top +  scrollTop - clientTop;
+  let left = box.left + scrollLeft - clientLeft;
+
+  return { top: Math.round(top), left: Math.round(left) };
 }
 
 function fixPiece(p){
@@ -611,12 +622,137 @@ function placePiece(p){
 }
 function dropPiece(){
 
-  placePiece(pezaSeleccionada);
+  placePiece(selectedPiece);
+
+  checkSidePieces(selectedPiece);
 
 
-  pezaSeleccionada=false;
+  selectedPiece=false;
 
 }
+
+function checkSidePieces(selectedPiece) {
+
+  // console.log(selectedPiece[0]);
+
+  let threshold = 5;
+
+  // CHECK TOP PIECE
+  if( selectedPiece.y > 0 ) {
+    let pieceOnTop = piecesMatrix[selectedPiece.y-1][selectedPiece.x];
+    let isTopPieceNear = isOnTop(selectedPiece, pieceOnTop, threshold);
+    if(isTopPieceNear) {
+      if(selectedPiece.parentElement.className === 'move') {
+        let topShift = (pieceOnTop.y - selectedPiece.parentElement.y) * sizeOfPieces;
+        let leftShift = (pieceOnTop.x - selectedPiece.parentElement.x) * sizeOfPieces;
+        connectPieces(selectedPiece.parentElement, pieceOnTop, topShift, leftShift);
+      }else {
+        connectPieces(selectedPiece, pieceOnTop, -sizeOfPieces, 0);
+      }
+      console.log('connect with piece in top: ', isTopPieceNear);
+    }
+  }
+  // CHECK BOTTOM PIECE
+  if(  selectedPiece.y < numRows-1 ) {
+    let pieceOnBottom = piecesMatrix[selectedPiece.y+1][selectedPiece.x];
+    let isBottomPieceNear = isOnTop(pieceOnBottom, selectedPiece, threshold);
+    if(isBottomPieceNear) {
+      if(selectedPiece.parentElement.className === 'move') {
+
+      }else {
+        connectPieces(selectedPiece, pieceOnBottom, sizeOfPieces, 0);
+      }
+      console.log('connect with piece in bottom: ', isBottomPieceNear);
+    }
+  }
+  // CHECK LEFT PIECE
+  if(  selectedPiece.x > 0 ) {
+    let pieceOnLeft = piecesMatrix[selectedPiece.y][selectedPiece.x - 1];
+    let isLeftPieceNear = isOnRight(pieceOnLeft, selectedPiece, threshold);
+    if(isLeftPieceNear) {
+      connectPieces(selectedPiece, pieceOnLeft, 0, -sizeOfPieces);
+      console.log('connect with piece in left: ', isLeftPieceNear);
+    }
+  }
+  // CHECK RIGHT PIECE
+  if(  selectedPiece.x < numCols - 1 ) {
+    let pieceOnRight = piecesMatrix[selectedPiece.y][selectedPiece.x + 1];
+    let isRightPieceNear = isOnRight(selectedPiece, pieceOnRight, threshold);
+    if(isRightPieceNear) {
+      connectPieces(selectedPiece, pieceOnRight, 0, sizeOfPieces);
+      console.log('connect with piece in right: ', isRightPieceNear);
+    }
+  }
+
+}
+
+function isOnTop(bottomPiece, topPiece, threshold) {
+  // let topRect = bottomPiece.offsetTop - threshold;
+  // let bottomRect = bottomPiece.offsetTop + threshold;
+  // let rightRect = bottomPiece.offsetLeft + parseInt(bottomPiece.clientWidth / 2) + threshold;
+  // let leftRect = bottomPiece.offsetLeft + parseInt(bottomPiece.clientWidth / 2) - threshold;
+  //
+  // let pieceOnTopTopRect = topPiece.offsetTop + topPiece.clientHeight - threshold;
+  // let pieceOnTopBottomRect = topPiece.offsetTop + topPiece.clientHeight + threshold;
+  // let pieceOnTopRightRect = topPiece.offsetLeft + parseInt(topPiece.clientWidth / 2) + threshold;
+  // let pieceOnTopLeftRect = topPiece.offsetLeft + parseInt(topPiece.clientWidth / 2) - threshold;
+
+  let bottomPieceCoords = getCoords(bottomPiece);
+  let topRect = bottomPieceCoords.top - threshold;
+  let bottomRect = bottomPieceCoords.top + threshold;
+  let rightRect = bottomPieceCoords.left + parseInt(bottomPiece.clientWidth / 2) + threshold;
+  let leftRect = bottomPieceCoords.left + parseInt(bottomPiece.clientWidth / 2) - threshold;
+  let pieceOnTopCoords = getCoords(topPiece);
+  let pieceOnTopTopRect = pieceOnTopCoords.top + topPiece.clientHeight - threshold;
+  let pieceOnTopBottomRect = pieceOnTopCoords.top + topPiece.clientHeight + threshold;
+  let pieceOnTopRightRect = pieceOnTopCoords.left + parseInt(topPiece.clientWidth / 2) + threshold;
+  let pieceOnTopLeftRect = pieceOnTopCoords.left + parseInt(topPiece.clientWidth / 2) - threshold;
+
+  return rectanglesIntersect(leftRect,topRect,rightRect,bottomRect , pieceOnTopLeftRect,pieceOnTopTopRect,pieceOnTopRightRect,pieceOnTopBottomRect );
+}
+
+function isOnRight(leftPiece, rightPiece, threshold) {
+  // let topRect = leftPiece.offsetTop + parseInt(leftPiece.clientHeight / 2) - threshold;
+  // let bottomRect = leftPiece.offsetTop + parseInt(leftPiece.clientHeight / 2) + threshold;
+  // let rightRect = leftPiece.offsetLeft + leftPiece.clientWidth + threshold;
+  // let leftRect = leftPiece.offsetLeft + leftPiece.clientWidth - threshold;
+  //
+  // let pieceOnRightTopRect = rightPiece.offsetTop + parseInt(rightPiece.clientHeight / 2) - threshold;
+  // let pieceOnRightBottomRect = rightPiece.offsetTop + parseInt(rightPiece.clientHeight / 2) + threshold;
+  // let pieceOnRightRightRect = rightPiece.offsetLeft + threshold;
+  // let pieceOnRightLeftRect = rightPiece.offsetLeft - threshold;
+
+  let leftPieceCoords = getCoords(leftPiece);
+  let topRect = leftPieceCoords.top + parseInt(leftPiece.clientHeight / 2) - threshold;
+  let bottomRect = leftPieceCoords.top + parseInt(leftPiece.clientHeight / 2) + threshold;
+  let rightRect = leftPieceCoords.left + leftPiece.clientWidth + threshold;
+  let leftRect = leftPieceCoords.left + leftPiece.clientWidth - threshold;
+  let rightPieceCoords = getCoords(rightPiece);
+  let pieceOnRightTopRect = rightPieceCoords.top + parseInt(rightPiece.clientHeight / 2) - threshold;
+  let pieceOnRightBottomRect = rightPieceCoords.top + parseInt(rightPiece.clientHeight / 2) + threshold;
+  let pieceOnRightRightRect = rightPieceCoords.left + threshold;
+  let pieceOnRightLeftRect = rightPieceCoords.left - threshold;
+
+  return rectanglesIntersect(leftRect,topRect,rightRect,bottomRect , pieceOnRightLeftRect,pieceOnRightTopRect,pieceOnRightRightRect,pieceOnRightBottomRect );
+}
+
+function rectanglesIntersect(
+  minAx, minAy, maxAx, maxAy,
+  minBx, minBy, maxBx, maxBy ) {
+  return maxAx >= minBx && minAx <= maxBx && minAy <= maxBy && maxAy >= minBy
+}
+
+function connectPieces (pieceToConnect, pieceToBeConnected, topPosition, leftPosition){
+  console.log('pieceToConnect', pieceToConnect);
+  console.log('pieceToBeConnected', pieceToBeConnected);
+  console.log('parent element', pieceToBeConnected.parentElement);
+  if(pieceToBeConnected.parentElement && pieceToBeConnected.parentElement.className === 'move' || pieceToConnect.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnect)) return;
+  document.body.removeChild(pieceToBeConnected);
+  pieceToConnect.appendChild(pieceToBeConnected);
+  pieceToBeConnected.style.top = topPosition + 'px';
+  pieceToBeConnected.style.left = leftPosition + 'px';
+}
+
 document.addEventListener('mousemove', drag, {passive: false});
 document.addEventListener("touchmove", drag, {passive: false});
 
@@ -628,20 +764,64 @@ function drag(e) {
     e.clientY = e.touches[0].clientY;
   }
 
-  if (pezaSeleccionada) {
+  let pieceToDrag = selectedPiece;
+  if(selectedPiece && selectedPiece.parentElement.className === 'move') {
+    pieceToDrag = pieceToDrag.parentElement;
+    // offset = [
+    //   getCoords(pieceToDrag).left - e.clientX,
+    //   getCoords(pieceToDrag).top  - e.clientY
+    // ];
+  }
+
+  if (pieceToDrag) {
     let mousePosition = {
 
       x : e.clientX,
       y : e.clientY
 
     };
-    pezaSeleccionada.style.left = (mousePosition.x + offset[0]) + 'px';
-    pezaSeleccionada.style.top  = (mousePosition.y + offset[1]) + 'px';
+    pieceToDrag.style.left = (mousePosition.x + offset[0]) + 'px';
+    pieceToDrag.style.top  = (mousePosition.y + offset[1]) + 'px';
 
     e.preventDefault();
     e.stopPropagation();
   }
 
+
+}
+
+function takePiece(e){
+
+  console.log('take piece')
+
+  if(e.target.parentElement.className === 'position') {
+    return;
+  }
+
+  selectedPiece=this;
+  offset = [
+    this.offsetLeft - e.clientX,
+    this.offsetTop - e.clientY
+  ];
+
+  if(e.target.parentElement.className === 'move') {
+    // realSelectedPiece = selectedPiece;
+    // selectedPiece = e.target.parentElement;
+    // offset = [
+    //   selectedPiece.offsetLeft - e.clientX,
+    //   selectedPiece.offsetTop  - e.clientY
+    // ];
+    offset = [
+      getCoords(e.target.parentElement).left - e.clientX,
+      getCoords(e.target.parentElement).top  - e.clientY
+    ];
+  }
+
+
+  if(typeof this.occupy == "number") {
+    document.querySelectorAll(".position")[this.occupy].occupied= false;
+    this.occupy=false;
+  }
 
 }
 
@@ -652,8 +832,14 @@ function getPos(e){
     e.clientY = e.touches[0].clientY;
   }
 
-  let x = e.clientX - this.offsetLeft;
-  let y = e.clientY - this.offsetTop + scrollBodyTop();
+  // let x = e.clientX - this.offsetLeft;
+  // let y = e.clientY - this.offsetTop + scrollBodyTop();
+
+  let cords = getCoords(this);
+  let x = e.clientX - cords.left ;
+  let y = e.clientY - cords.top;
+
+
 
   if ((x>0 && x<sizeOfPieces) && (y>0 && y<sizeOfPieces)){
     takePiece.call(this, e);
@@ -681,6 +867,11 @@ function getPos(e){
 
 let lastTarget;
 function onDblClick(e) {
+  if(e.target.parentElement.className === 'move' || e.target.querySelectorAll('.move').length > 0) {
+    return;
+  }
+
+
   if ( lastTarget === undefined || lastTarget !== e.target) {
     lastTarget = e.target;
     clickCount = 1;
