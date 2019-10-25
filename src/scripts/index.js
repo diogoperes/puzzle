@@ -642,14 +642,9 @@ function checkSidePieces(selectedPiece) {
     let pieceOnTop = piecesMatrix[selectedPiece.y-1][selectedPiece.x];
     let isTopPieceNear = isOnTop(selectedPiece, pieceOnTop, threshold);
     if(isTopPieceNear) {
-      if(selectedPiece.parentElement.className === 'move') {
-        let topShift = (pieceOnTop.y - selectedPiece.parentElement.y) * sizeOfPieces;
-        let leftShift = (pieceOnTop.x - selectedPiece.parentElement.x) * sizeOfPieces;
-        connectPieces(selectedPiece.parentElement, pieceOnTop, topShift, leftShift);
-      }else {
-        connectPieces(selectedPiece, pieceOnTop, -sizeOfPieces, 0);
-      }
+      checkHierarchyBeforeConnecting(selectedPiece, pieceOnTop, -sizeOfPieces, 0);
       console.log('connect with piece in top: ', isTopPieceNear);
+      return;
     }
   }
   // CHECK BOTTOM PIECE
@@ -657,12 +652,9 @@ function checkSidePieces(selectedPiece) {
     let pieceOnBottom = piecesMatrix[selectedPiece.y+1][selectedPiece.x];
     let isBottomPieceNear = isOnTop(pieceOnBottom, selectedPiece, threshold);
     if(isBottomPieceNear) {
-      if(selectedPiece.parentElement.className === 'move') {
-
-      }else {
-        connectPieces(selectedPiece, pieceOnBottom, sizeOfPieces, 0);
-      }
+      checkHierarchyBeforeConnecting(selectedPiece, pieceOnBottom, sizeOfPieces, 0);
       console.log('connect with piece in bottom: ', isBottomPieceNear);
+      return;
     }
   }
   // CHECK LEFT PIECE
@@ -670,8 +662,9 @@ function checkSidePieces(selectedPiece) {
     let pieceOnLeft = piecesMatrix[selectedPiece.y][selectedPiece.x - 1];
     let isLeftPieceNear = isOnRight(pieceOnLeft, selectedPiece, threshold);
     if(isLeftPieceNear) {
-      connectPieces(selectedPiece, pieceOnLeft, 0, -sizeOfPieces);
+      checkHierarchyBeforeConnecting(selectedPiece, pieceOnLeft, 0, -sizeOfPieces);
       console.log('connect with piece in left: ', isLeftPieceNear);
+      return;
     }
   }
   // CHECK RIGHT PIECE
@@ -679,8 +672,9 @@ function checkSidePieces(selectedPiece) {
     let pieceOnRight = piecesMatrix[selectedPiece.y][selectedPiece.x + 1];
     let isRightPieceNear = isOnRight(selectedPiece, pieceOnRight, threshold);
     if(isRightPieceNear) {
-      connectPieces(selectedPiece, pieceOnRight, 0, sizeOfPieces);
+      checkHierarchyBeforeConnecting(selectedPiece, pieceOnRight, 0, sizeOfPieces);
       console.log('connect with piece in right: ', isRightPieceNear);
+      return;
     }
   }
 
@@ -742,13 +736,82 @@ function rectanglesIntersect(
   return maxAx >= minBx && minAx <= maxBx && minAy <= maxBy && maxAy >= minBy
 }
 
-function connectPieces (pieceToConnect, pieceToBeConnected, topPosition, leftPosition){
-  console.log('pieceToConnect', pieceToConnect);
+function checkHierarchyBeforeConnecting(pieceToConnectTo, pieceToBeConnected, topPosition, leftPosition) {
+  if(pieceToConnectTo.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnectTo)) return;
+  if(pieceToConnectTo.parentElement.className === 'move' && pieceToConnectTo.parentElement === pieceToBeConnected.parentElement) return;
+  // topPosition = (pieceToBeConnected.y - selectedPiece.y) * sizeOfPieces;
+  // leftPosition = (pieceToBeConnected.x - selectedPiece.x) * sizeOfPieces;
+
+  //check if piece to be connected is a parent, in that case the parent piece and all the children have to pass for the piece to connect to
+  if([...pieceToBeConnected.childNodes].find(child => child.className === 'move')) {
+    console.log('is a parent, children will be moved to piece to connect. Children: ', pieceToBeConnected.childNodes);
+    connectChildPieces(pieceToConnectTo, pieceToBeConnected);
+    connectPieces(pieceToConnectTo, pieceToBeConnected);
+  }else if(pieceToBeConnected.parentElement.className === 'move' ) {
+    console.log('is child, connect parent');
+    let parentPiece = pieceToBeConnected.parentElement;
+    connectChildPieces(pieceToConnectTo, parentPiece);
+    connectPieces(pieceToConnectTo, parentPiece);
+  }else {
+    connectPieces(pieceToConnectTo, pieceToBeConnected);
+  }
+
+
+}
+
+function connectChildPieces(pieceToConnectTo, pieceToBeConnected) {
+  console.log('children', pieceToBeConnected.children);
+  let childrenToMove = [];
+
+  pieceToBeConnected.childNodes.forEach(function(child){
+    if(child.className === 'move') {
+      childrenToMove.push(child);
+      // console.log('connect child', child);
+    }
+  });
+
+  childrenToMove.forEach(function(child){
+    connectPieces(pieceToConnectTo, child);
+  });
+
+}
+
+function connectPieces (pieceToConnectTo, pieceToBeConnected){
+    // if(pieceToConnectTo.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnectTo)) return;
+  let topPosition = (pieceToBeConnected.y - selectedPiece.y) * sizeOfPieces;
+  let leftPosition = (pieceToBeConnected.x - selectedPiece.x) * sizeOfPieces;
+  // //check if piece to be connected is a parent, in that case the parent piece and all the children have to pass for the piece to connect to
+  // if([...pieceToBeConnected.childNodes].find(child => child.className === 'move')) {
+  //   console.log('is a parent, children will be moved to piece to connect');
+  //   pieceToBeConnected.childNodes.forEach(function(child){
+  //     if(child.className === 'move') {
+  //       console.log('pieceToConnectTo', pieceToConnectTo);
+  //       console.log('child', child);
+  //       console.trace();
+  //       connectPieces(pieceToConnectTo, child);
+  //     }
+  //   });
+  //   // connectPieces(pieceToConnectTo, child);
+  // }
+  //
+  // if(pieceToBeConnected.parentElement.className === 'move' ) {
+  //   connectPieces(pieceToConnectTo, pieceToBeConnected.parentElement);
+  //   return;
+  // }
+
+  // if(pieceToConnectTo.parentElement.className === 'move') {
+  //   topPosition = (pieceToBeConnected.y - selectedPiece.parentElement.y) * sizeOfPieces;
+  //   leftPosition = (pieceToBeConnected.x - selectedPiece.parentElement.x) * sizeOfPieces;
+  //   pieceToConnectTo = pieceToConnectTo.parentElement;
+  // }
+
+
+  console.log('pieceToConnectTo', pieceToConnectTo);
   console.log('pieceToBeConnected', pieceToBeConnected);
   console.log('parent element', pieceToBeConnected.parentElement);
-  if(pieceToBeConnected.parentElement && pieceToBeConnected.parentElement.className === 'move' || pieceToConnect.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnect)) return;
-  document.body.removeChild(pieceToBeConnected);
-  pieceToConnect.appendChild(pieceToBeConnected);
+
+  pieceToBeConnected.parentElement.removeChild(pieceToBeConnected);
+  pieceToConnectTo.appendChild(pieceToBeConnected);
   pieceToBeConnected.style.top = topPosition + 'px';
   pieceToBeConnected.style.left = leftPosition + 'px';
 }
