@@ -488,8 +488,9 @@ function start(){
     setTimeout(function(){
       let angle=Math.floor(Math.random()*4);
       // e.setAttribute("classangle","g"+angle);
-      e.style.transform="rotate("+angle*90+"deg)";
+      e.rotation=angle*90;
       e.angle=angle;
+      e.style.transform="rotate("+e.rotation+"deg)";
     },10);
 
   });
@@ -540,11 +541,13 @@ function getPositionToSpawn() {
 function turn(){
 
   this.angle++;
+  if( this.angle >= 4 ) this.angle = 0;
+  this.rotation += 90;
 
-  this.style.transform="rotate("+this.angle*90+"deg)";
+  this.style.transform="rotate("+this.rotation+"deg)";
 
   // this.setAttribute("classangle","g"+this.angle%4);
-  if ((this.occupy===this.index) && this.angle%4 ==0)fixPiece(this);
+  if ((this.occupy===this.index) && this.angle%4 ===0)fixPiece(this);
 
 
 }
@@ -640,44 +643,56 @@ function checkSidePieces(selectedPiece) {
   // CHECK TOP PIECE
   if( selectedPiece.y > 0 ) {
     let pieceOnTop = piecesMatrix[selectedPiece.y-1][selectedPiece.x];
-    let isTopPieceNear = isOnTop(selectedPiece, pieceOnTop, threshold);
-    if(isTopPieceNear) {
-      checkHierarchyBeforeConnecting(selectedPiece, pieceOnTop, -sizeOfPieces, 0);
-      console.log('connect with piece in top: ', isTopPieceNear);
-      return;
+    if( isSameAngle(selectedPiece, pieceOnTop) ) {
+      let isTopPieceNear = isOnTop(selectedPiece, pieceOnTop, threshold);
+      if( isTopPieceNear && isHierarchyAvailableToConnect(selectedPiece, pieceOnTop) ) {
+        checkHierarchyBeforeConnecting(selectedPiece, pieceOnTop, -sizeOfPieces, 0);
+        console.log('connect with piece in top: ', isTopPieceNear);
+        return;
+      }
     }
   }
   // CHECK BOTTOM PIECE
   if(  selectedPiece.y < numRows-1 ) {
     let pieceOnBottom = piecesMatrix[selectedPiece.y+1][selectedPiece.x];
-    let isBottomPieceNear = isOnTop(pieceOnBottom, selectedPiece, threshold);
-    if(isBottomPieceNear) {
-      checkHierarchyBeforeConnecting(selectedPiece, pieceOnBottom, sizeOfPieces, 0);
-      console.log('connect with piece in bottom: ', isBottomPieceNear);
-      return;
+    if( isSameAngle(selectedPiece, pieceOnBottom) ) {
+      let isBottomPieceNear = isOnTop(pieceOnBottom, selectedPiece, threshold);
+      if( isBottomPieceNear && isHierarchyAvailableToConnect(selectedPiece, pieceOnBottom) ) {
+        checkHierarchyBeforeConnecting(selectedPiece, pieceOnBottom, sizeOfPieces, 0);
+        console.log('connect with piece in bottom: ', isBottomPieceNear);
+        return;
+      }
     }
   }
   // CHECK LEFT PIECE
   if(  selectedPiece.x > 0 ) {
     let pieceOnLeft = piecesMatrix[selectedPiece.y][selectedPiece.x - 1];
-    let isLeftPieceNear = isOnRight(pieceOnLeft, selectedPiece, threshold);
-    if(isLeftPieceNear) {
-      checkHierarchyBeforeConnecting(selectedPiece, pieceOnLeft, 0, -sizeOfPieces);
-      console.log('connect with piece in left: ', isLeftPieceNear);
-      return;
+    if( isSameAngle(selectedPiece, pieceOnLeft) ) {
+      let isLeftPieceNear = isOnRight(pieceOnLeft, selectedPiece, threshold);
+      if( isLeftPieceNear && isHierarchyAvailableToConnect(selectedPiece, pieceOnLeft) ) {
+        checkHierarchyBeforeConnecting(selectedPiece, pieceOnLeft, 0, -sizeOfPieces);
+        console.log('connect with piece in left: ', isLeftPieceNear);
+        return;
+      }
     }
   }
   // CHECK RIGHT PIECE
   if(  selectedPiece.x < numCols - 1 ) {
     let pieceOnRight = piecesMatrix[selectedPiece.y][selectedPiece.x + 1];
-    let isRightPieceNear = isOnRight(selectedPiece, pieceOnRight, threshold);
-    if(isRightPieceNear) {
-      checkHierarchyBeforeConnecting(selectedPiece, pieceOnRight, 0, sizeOfPieces);
-      console.log('connect with piece in right: ', isRightPieceNear);
-      return;
+    if( isSameAngle(selectedPiece, pieceOnRight) ) {
+      let isRightPieceNear = isOnRight(selectedPiece, pieceOnRight, threshold);
+      if( isRightPieceNear && isHierarchyAvailableToConnect(selectedPiece, pieceOnRight) ) {
+        checkHierarchyBeforeConnecting(selectedPiece, pieceOnRight, 0, sizeOfPieces);
+        console.log('connect with piece in right: ', isRightPieceNear);
+        return;
+      }
     }
   }
 
+}
+
+function isSameAngle(piece1, piece2) {
+  return piece1.angle === piece2.angle;
 }
 
 function isOnTop(bottomPiece, topPiece, threshold) {
@@ -736,9 +751,13 @@ function rectanglesIntersect(
   return maxAx >= minBx && minAx <= maxBx && minAy <= maxBy && maxAy >= minBy
 }
 
+function isHierarchyAvailableToConnect(pieceToConnectTo, pieceToBeConnected) {
+  if(pieceToConnectTo.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnectTo)) return false;
+  if(pieceToConnectTo.parentElement.className === 'move' && pieceToConnectTo.parentElement === pieceToBeConnected.parentElement) return false;
+  return true;
+}
+
 function checkHierarchyBeforeConnecting(pieceToConnectTo, pieceToBeConnected, topPosition, leftPosition) {
-  if(pieceToConnectTo.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnectTo)) return;
-  if(pieceToConnectTo.parentElement.className === 'move' && pieceToConnectTo.parentElement === pieceToBeConnected.parentElement) return;
   // topPosition = (pieceToBeConnected.y - selectedPiece.y) * sizeOfPieces;
   // leftPosition = (pieceToBeConnected.x - selectedPiece.x) * sizeOfPieces;
 
@@ -747,11 +766,19 @@ function checkHierarchyBeforeConnecting(pieceToConnectTo, pieceToBeConnected, to
     console.log('is a parent, children will be moved to piece to connect. Children: ', pieceToBeConnected.childNodes);
     connectChildPieces(pieceToConnectTo, pieceToBeConnected);
     connectPieces(pieceToConnectTo, pieceToBeConnected);
-  }else if(pieceToBeConnected.parentElement.className === 'move' ) {
+  }
+  // check if the piece to be connected has a parent piece, in that case connect the parent and all its children
+  else if(pieceToBeConnected.parentElement.className === 'move' ) {
     console.log('is child, connect parent');
-    let parentPiece = pieceToBeConnected.parentElement;
-    connectChildPieces(pieceToConnectTo, parentPiece);
-    connectPieces(pieceToConnectTo, parentPiece);
+    pieceToBeConnected = pieceToBeConnected.parentElement;
+
+    //if destination piece has a parent piece, connect to parent piece instead
+    if( pieceToConnectTo.parentElement.className === 'move' ) {
+      pieceToConnectTo = pieceToConnectTo.parentElement;
+    }
+
+    connectChildPieces(pieceToConnectTo, pieceToBeConnected);
+    connectPieces(pieceToConnectTo, pieceToBeConnected);
   }else {
     connectPieces(pieceToConnectTo, pieceToBeConnected);
   }
@@ -778,8 +805,8 @@ function connectChildPieces(pieceToConnectTo, pieceToBeConnected) {
 
 function connectPieces (pieceToConnectTo, pieceToBeConnected){
     // if(pieceToConnectTo.contains(pieceToBeConnected) || pieceToBeConnected.contains(pieceToConnectTo)) return;
-  let topPosition = (pieceToBeConnected.y - selectedPiece.y) * sizeOfPieces;
-  let leftPosition = (pieceToBeConnected.x - selectedPiece.x) * sizeOfPieces;
+  let topPosition = (pieceToBeConnected.y - pieceToConnectTo.y) * sizeOfPieces;
+  let leftPosition = (pieceToBeConnected.x - pieceToConnectTo.x) * sizeOfPieces;
   // //check if piece to be connected is a parent, in that case the parent piece and all the children have to pass for the piece to connect to
   // if([...pieceToBeConnected.childNodes].find(child => child.className === 'move')) {
   //   console.log('is a parent, children will be moved to piece to connect');
