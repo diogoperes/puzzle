@@ -1,6 +1,7 @@
 import '../styles/index.scss';
 // import $ from 'jquery';
 import {pieceData} from './puzzlePieceHelper.js';
+import {checkSidePieces, getCoords} from './piecePlacementHelper.js';
 
 // console.log('webpack starterkit');
 
@@ -16,7 +17,7 @@ let idOfImageSelected;
 
 let director; //List with pieces and its data
 let offset;
-let pecaAlSeuLloc;
+let piecesPlacedCorrectly;
 let timeInitial;
 let timeEnd;
 
@@ -27,10 +28,14 @@ let singleClickTimer;
 let sizeOfPieces = 100;
 let maxSizeOfPieces = 100;
 
-let pezaSeleccionada= false;
+let selectedPiece= false;
+let realSelectedPiece = false;
 
 let puzzleImagesList = {};
 let imagesLoaded = 0;
+
+let piecesMatrix = [];
+let positionsList = [];
 
 const seeImage_btn = document.getElementById("seeImage");
 
@@ -97,8 +102,12 @@ function createPiece(piecePath,x,y,index){
 function placePuzzleImagesInPlace() {
   window.puzzleImagesList = puzzleImagesList;
 
+  piecesMatrix = [];
+  positionsList = [];
+
   let index = 0;
   for (let row=0; row<numRows; row++){
+    let rowList = [];
     for (let col=0; col<numCols; col++){
 
       let image = puzzleImagesList[col+'-'+row].image;
@@ -135,9 +144,14 @@ function placePuzzleImagesInPlace() {
       position.occupied=false;
       document.querySelector("#container").appendChild(position);
       position.appendChild(move);
+      positionsList.push(position);
+
       move.style.zIndex = zIndex++;
       move.zIndexPrevi=move.style.zIndex;
+      move.x = col;
+      move.y = row;
 
+      rowList.push(move);
       // let xmlns = "http://www.w3.org/2000/svg";
       // let svg = document.createElementNS(xmlns, "svg");
       // let path = document.createElementNS(xmlns, 'path');
@@ -158,6 +172,7 @@ function placePuzzleImagesInPlace() {
 
       index++;
     }
+    piecesMatrix.push(rowList);
   }
 
 
@@ -299,7 +314,7 @@ function getRandomImageId(max = 10) {
 function createPuzzle(){
   // imageSrc = `${host}/id/${getRandomImageId()}/${model.width}/${model.height}`;
 
-  pecaAlSeuLloc=0;
+  piecesPlacedCorrectly=0;
   // document.getElementById("container").innerHTML="";
   let child = document.getElementById("container").getElementsByClassName("position")[0];
   while (child) {
@@ -315,7 +330,8 @@ function createPuzzle(){
 
   director=[];
   let index=0;
-  pezaSeleccionada= false;
+  selectedPiece= false;
+  realSelectedPiece= false;
   // numRows=model.numRows;
   // numCols=model.numCols;
 
@@ -474,11 +490,17 @@ function start(){
     // e.style.top = getRandomInt(minHeightSpawnBottom, maxHeightSpawnBottom) + "px";
 
     // e.style.left=Math.random()*(window.innerWidth -100) +"px";
+
+
     setTimeout(function(){
       let angle=Math.floor(Math.random()*4);
+
+      // let angle=0;
+
       // e.setAttribute("classangle","g"+angle);
-      e.style.transform="rotate("+angle*90+"deg)";
+      e.rotation=angle*90;
       e.angle=angle;
+      e.style.transform="rotate("+e.rotation+"deg)";
     },10);
 
   });
@@ -529,36 +551,28 @@ function getPositionToSpawn() {
 function turn(){
 
   this.angle++;
+  if( this.angle >= 4 ) this.angle = 0;
+  this.rotation += 90;
 
-  this.style.transform="rotate("+this.angle*90+"deg)";
+  this.style.transform="rotate("+this.rotation+"deg)";
 
   // this.setAttribute("classangle","g"+this.angle%4);
-  if ((this.occupy===this.index) && this.angle%4 ==0)fixPiece(this);
+  if ((this.occupy===this.index) && this.angle%4 ===0)fixPiece(this);
 
-
-}
-function takePiece(e){
-
-  if(e.target.parentElement.className === 'position') {
-    return;
-  }
-
-  pezaSeleccionada=this;
-  offset = [
-    this.offsetLeft - e.clientX,
-    this.offsetTop - e.clientY
-  ];
-
-  if(typeof this.occupy == "number") {
-    document.querySelectorAll(".position")[this.occupy].occupied= false;
-    this.occupy=false;
-  }
 
 }
 
 function fixPiece(p){
-  document.body.removeChild(p);
-  document.querySelectorAll(".position")[p.index].appendChild(p);
+  let correspondentPositionOnContainer = positionsList[p.index];
+  let offsetLeft = correspondentPositionOnContainer.offsetLeft + document.getElementById("container").offsetLeft;
+  let offsetTop = correspondentPositionOnContainer.offsetTop + document.getElementById("container").offsetTop;
+  p.style.top=offsetTop+"px";
+  p.style.left=offsetLeft+"px";
+  correspondentPositionOnContainer.occupied= true;
+  p.occupy = p.index;
+
+  p.parentElement.removeChild(p);
+  correspondentPositionOnContainer.appendChild(p);
   p.onmousedown="";
   p.onclick="";
   p.onmouseover="";
@@ -577,8 +591,8 @@ function fixPiece(p){
   setTimeout(function(){p.style.transform="scale(1)";},150);
   // setTimeout(function(){p.path.style.strokeWidth="2px"; p.style.zIndex= 0;},250);
   // setTimeout(function(){p.style.filter = "drop-shadow(black 0px 0px 0)"; p.style.zIndex= 0;},250);
-  pecaAlSeuLloc++;
-  if (pecaAlSeuLloc == numRows * numCols ){
+  piecesPlacedCorrectly++;
+  if (piecesPlacedCorrectly === numRows * numCols ){
     timeEnd = Math.floor(((new Date).getTime()-timeInitial)/1000);
     let hours = Math.floor(timeEnd/3600);
     let minutes =  Math.floor((timeEnd - hours * 3600)/60);
@@ -592,31 +606,100 @@ function fixPiece(p){
     setTimeout(final,500);
   }
 }
+
+
+/*
+*  Check if piece can be placed in correct position
+*/
 function placePiece(p){
   if(p.style) {
     p.style.zIndex = zIndex++;
-    p.zIndexPrevi=p.style.zIndex;
-    document.querySelectorAll(".position").forEach (function(e,i){
-      let offsetLeft = e.offsetLeft + document.getElementById("container").offsetLeft;
-      let offsetTop = e.offsetTop + document.getElementById("container").offsetTop;
-      if ((p.position().left>offsetLeft && p.position().left<offsetLeft+sizeOfPieces)&&(p.position().top>offsetTop && p.position().top<offsetTop+sizeOfPieces) && !e.occupied ){
-        p.style.left=offsetLeft+"px";
-        p.style.top=offsetTop+"px";
-        e.occupied= true;
-        p.occupy = i;
-        if (e.index == p.index && p.angle%4 === 0)fixPiece(p);
+    p.zIndexPrevi = p.style.zIndex;
+
+    let correspondentPositionOnContainer = positionsList[p.index];
+    let offsetLeft = correspondentPositionOnContainer.offsetLeft + document.getElementById("container").offsetLeft;
+    let offsetTop = correspondentPositionOnContainer.offsetTop + document.getElementById("container").offsetTop;
+    if ( ( p.position().left>offsetLeft && p.position().left<offsetLeft+sizeOfPieces ) &&
+        ( p.position().top>offsetTop && p.position().top<offsetTop+sizeOfPieces ) &&
+        !correspondentPositionOnContainer.occupied &&
+          correspondentPositionOnContainer.index === p.index && p.angle%4 === 0){
+        fixPiece(p);
+        if ( [...p.childNodes].find(child => child.className === 'move') ) {
+          let childrenToMove = [];
+          for (let i = 0; i <  p.childNodes.length ; i++) {
+            if( p.childNodes[i].className === 'move' ) {
+              childrenToMove.push(p.childNodes[i]);
+            }
+          }
+          childrenToMove.forEach(function(child){
+            fixPiece(child);
+          });
+        }
+        return true;
       }
-    });
+
+    // let positionsInContainer = document.querySelectorAll(".position");
+    // for (let i = 0; i < positionsInContainer.length; i++) {
+    //   let position = positionsInContainer[i];
+    //   let offsetLeft = position.offsetLeft + document.getElementById("container").offsetLeft;
+    //   let offsetTop = position.offsetTop + document.getElementById("container").offsetTop;
+    //   if ( ( p.position().left>offsetLeft && p.position().left<offsetLeft+sizeOfPieces ) &&
+    //     ( p.position().top>offsetTop && p.position().top<offsetTop+sizeOfPieces ) &&
+    //     !position.occupied &&
+    //     position.index === p.index && p.angle%4 === 0){
+    //     // if (position.index === p.index && p.angle%4 === 0) {
+    //     fixPiece(p, position, offsetTop, offsetLeft);
+    //     if ( [...p.childNodes].find(child => child.className === 'move') ) {
+    //       for (let i = 0; i <  p.childNodes.length ; i++) {
+    //         if( p.childNodes[i].className === 'move' ) {
+    //           fixPiece(p, position, offsetTop, offsetLeft);
+    //         }
+    //       }
+    //     }
+    //     return true;
+    //     // }
+    //   }
+    // }
+
+    // document.querySelectorAll(".position").forEach (function(e,i){
+    //
+    // });
+    return false;
   }
 }
 function dropPiece(){
+  let pieceToPlace = selectedPiece;
+  if( pieceToPlace && pieceToPlace.parentElement.className === 'move' ) pieceToPlace = pieceToPlace.parentElement;
+  let didItPlace = placePiece(pieceToPlace);
 
-  placePiece(pezaSeleccionada);
+  console.log('did it placed', didItPlace);
 
+  if( !didItPlace ) {
+    // check if the piece can be connected
+    let hasConnected = checkSidePieces(selectedPiece, piecesMatrix, sizeOfPieces, numRows, numCols );
+    // if not, check its children
+    if(!hasConnected) {
+      let pieceToCheckChildren;
+      if( selectedPiece && selectedPiece.parentElement.className === 'move' ) {
+        pieceToCheckChildren = selectedPiece.parentElement;
+      } else if( selectedPiece && [...selectedPiece.childNodes].find(child => child.className === 'move') ) {
+        pieceToCheckChildren = selectedPiece;
+      }
+      if( pieceToCheckChildren ) {
+        for (let i = 0; i <  pieceToCheckChildren.childNodes.length ; i++) {
+          if( pieceToCheckChildren.childNodes[i].className === 'move' ) {
+            hasConnected = checkSidePieces(pieceToCheckChildren.childNodes[i], piecesMatrix, sizeOfPieces, numRows, numCols );
+            if(hasConnected) break;
+          }
+        }
+      }
+    }
+  }
 
-  pezaSeleccionada=false;
+  selectedPiece=false;
 
 }
+
 document.addEventListener('mousemove', drag, {passive: false});
 document.addEventListener("touchmove", drag, {passive: false});
 
@@ -628,20 +711,64 @@ function drag(e) {
     e.clientY = e.touches[0].clientY;
   }
 
-  if (pezaSeleccionada) {
+  let pieceToDrag = selectedPiece;
+  if(selectedPiece && selectedPiece.parentElement.className === 'move') {
+    pieceToDrag = pieceToDrag.parentElement;
+    // offset = [
+    //   getCoords(pieceToDrag).left - e.clientX,
+    //   getCoords(pieceToDrag).top  - e.clientY
+    // ];
+  }
+
+  if (pieceToDrag) {
     let mousePosition = {
 
       x : e.clientX,
       y : e.clientY
 
     };
-    pezaSeleccionada.style.left = (mousePosition.x + offset[0]) + 'px';
-    pezaSeleccionada.style.top  = (mousePosition.y + offset[1]) + 'px';
+    pieceToDrag.style.left = (mousePosition.x + offset[0]) + 'px';
+    pieceToDrag.style.top  = (mousePosition.y + offset[1]) + 'px';
 
     e.preventDefault();
     e.stopPropagation();
   }
 
+
+}
+
+function takePiece(e){
+
+  // console.log('take piece')
+
+  if(e.target.parentElement.className === 'position') {
+    return;
+  }
+
+  selectedPiece=this;
+  offset = [
+    this.offsetLeft - e.clientX,
+    this.offsetTop - e.clientY
+  ];
+
+  if(e.target.parentElement.className === 'move') {
+    // realSelectedPiece = selectedPiece;
+    // selectedPiece = e.target.parentElement;
+    // offset = [
+    //   selectedPiece.offsetLeft - e.clientX,
+    //   selectedPiece.offsetTop  - e.clientY
+    // ];
+    offset = [
+      getCoords(e.target.parentElement).left - e.clientX,
+      getCoords(e.target.parentElement).top  - e.clientY
+    ];
+  }
+
+
+  if(typeof this.occupy == "number") {
+    document.querySelectorAll(".position")[this.occupy].occupied= false;
+    this.occupy=false;
+  }
 
 }
 
@@ -652,8 +779,14 @@ function getPos(e){
     e.clientY = e.touches[0].clientY;
   }
 
-  let x = e.clientX - this.offsetLeft;
-  let y = e.clientY - this.offsetTop + scrollBodyTop();
+  // let x = e.clientX - this.offsetLeft;
+  // let y = e.clientY - this.offsetTop + scrollBodyTop();
+
+  let cords = getCoords(this);
+  let x = e.clientX - cords.left ;
+  let y = e.clientY - cords.top;
+
+
 
   if ((x>0 && x<sizeOfPieces) && (y>0 && y<sizeOfPieces)){
     takePiece.call(this, e);
@@ -681,6 +814,11 @@ function getPos(e){
 
 let lastTarget;
 function onDblClick(e) {
+  if(e.target.parentElement.className === 'move' || e.target.querySelectorAll('.move').length > 0) {
+    return;
+  }
+
+
   if ( lastTarget === undefined || lastTarget !== e.target) {
     lastTarget = e.target;
     clickCount = 1;
