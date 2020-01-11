@@ -1,4 +1,5 @@
 import '../styles/index.scss';
+import '../styles/toggle.scss';
 // import $ from 'jquery';
 import {pieceData} from './puzzlePieceHelper.js';
 import {checkSidePieces, getCoords} from './piecePlacementHelper.js';
@@ -37,8 +38,22 @@ let imagesLoaded = 0;
 let piecesMatrix = [];
 let positionsList = [];
 
+/**
+ * Rotate pieces at start
+ *
+ * @type {boolean}
+ */
+let rotatePieces = false;
+
 const seeImage_btn = document.getElementById("seeImage");
 
+/**
+ *
+ * @param piecePath - piece svg path
+ * @param {number} x - piece position in matrix row
+ * @param {number} y - piece position in matrix column
+ * @param index
+ */
 function createPiece(piecePath,x,y,index){
 
   piecePath = "M40,40 " + piecePath;
@@ -175,6 +190,7 @@ function placePuzzleImagesInPlace() {
     piecesMatrix.push(rowList);
   }
 
+  document.getElementById('loading').style.display = 'none';
 
 }
 
@@ -357,6 +373,7 @@ function createPuzzle(){
   // console.log(model.imageUrl);
   let backgroundUrl = `${host}/id/${idOfImageSelected}/${numCols*sizeOfPieces}/${numRows*sizeOfPieces}`;
   document.getElementById("backgroundImage").style.backgroundImage = `url(${backgroundUrl})`;
+  document.getElementById('loading').style.display = 'block';
 
   puzzleImagesList = {};
   imagesLoaded = 0;
@@ -426,6 +443,11 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
+  const rotatePiecesSwitch  = document.getElementById('switch');
+  rotatePiecesSwitch.addEventListener( 'change', (e) => {
+    rotatePieces = rotatePiecesSwitch.checked;
+  });
+
 });
 
 document.addEventListener("fullscreenchange", function(){
@@ -491,17 +513,18 @@ function start(){
 
     // e.style.left=Math.random()*(window.innerWidth -100) +"px";
 
+    if( rotatePieces ) {
+      setTimeout(function(){
+        let angle=Math.floor(Math.random()*4);
 
-    setTimeout(function(){
-      let angle=Math.floor(Math.random()*4);
+        // let angle=0;
 
-      // let angle=0;
-
-      // e.setAttribute("classangle","g"+angle);
-      e.rotation=angle*90;
-      e.angle=angle;
-      e.style.transform="rotate("+e.rotation+"deg)";
-    },10);
+        // e.setAttribute("classangle","g"+angle);
+        e.rotation=angle*90;
+        e.angle=angle;
+        e.style.transform="rotate("+e.rotation+"deg)";
+      },10);
+    }
 
   });
   timeInitial = (new Date).getTime();
@@ -772,7 +795,12 @@ function takePiece(e){
 
 }
 
-
+/**
+ * Handler for onMouseDown and onTouchStart
+ * Get the coordinates and selects the puzzle piece clicked
+ *
+ * @param e element being clicked
+ */
 function getPos(e){
   if (e.type === 'touchstart' ) {
     e.clientX = e.touches[0].clientX;
@@ -813,6 +841,11 @@ function getPos(e){
 
 
 let lastTarget;
+/**
+ * Handler for double click
+ * This handler saves the last element clicked and if the element is clicked again in the time period of 300ms, a double click is triggered to rotate the piece clicked
+ * @param e mouse event
+ */
 function onDblClick(e) {
   if(e.target.parentElement.className === 'move' || e.target.querySelectorAll('.move').length > 0) {
     return;
@@ -837,6 +870,12 @@ function onDblClick(e) {
   }
 }
 
+/**
+ *
+ * @param min minimum value for returned integer
+ * @param max maximum value for returned integer
+ * @returns {number} random number between min and max values passed
+ */
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -849,6 +888,9 @@ function stopTracking(){
 
 }
 
+/**
+ * Click listener for "see image" button
+ */
 function seeImage() {
   let element = document.getElementById("backgroundImage");
   if (this.classList.contains('checked')) {
@@ -861,6 +903,9 @@ function seeImage() {
 
 }
 
+/**
+ *  Event listener for menuButton, toggle menu button and menu
+ */
 document.getElementById('menuButton').addEventListener('click', (e) => {
   let element = e.currentTarget;
   let menuElement = document.getElementById('menu');
@@ -878,6 +923,9 @@ document.getElementById('menu').addEventListener('click', (e) => {
   e.stopPropagation();
 });
 
+/**
+* Event listener for document click, hide menu if is opened
+*/
 document.addEventListener("click", function(){
   let menuElement = document.getElementById('menu');
   let menuButtonElement = document.getElementById('menuButton');

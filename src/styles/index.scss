@@ -79,6 +79,9 @@ h2{
 
 
 #container{
+  min-width: 100px;
+  min-height: 100px;
+
   position: relative;
   margin:auto;
   box-shadow: inset 0px 0px 3px black;
@@ -167,7 +170,7 @@ h2{
 }
 
 #models img{
-  margin: 10px;
+  margin: 2px;
 }
 
 /*#models>div{
@@ -278,6 +281,12 @@ h2{
   transition: left 500ms ease-in-out;
   display: flex;
   flex-direction: column;
+
+  .instructions {
+    text-align: center;
+    color: #8c8c8c;
+    font-size: 14px;
+  }
 }
 
 #menu.active {
@@ -372,13 +381,13 @@ h2{
 .difficulty-title {
   font-size: 25px;
   text-align: center;
-  margin: 10px;
+  margin: 8px;
   color: #fff;
 }
 
 //RADIO BUTTONS
 .radio-toolbar {
-  margin: 10px 10px 20px 10px;
+  margin: 5px 5px 5px 5px;
   text-align: center;
 }
 
@@ -441,6 +450,54 @@ h2{
 #arrangePieces, #seeImage {
 
 }
+
+// LOADING
+#loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 9999;
+  
+  p {
+    color: #fff;
+    margin: 2px 0;
+  }
+
+  .loadingCircle {
+    border: 5px solid #252525;
+    border-radius: 50%;
+    border-top-color: #eeeeee;
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    100% { transform: rotate(360deg); }
+  }
+}
+//END OF LOADING
+
+//ROTATION OPTION
+.rotate-option {
+  text-align: center;
+  margin: 5px;
+
+  .difficulty-title, label {
+    display: inline-block;
+    margin: 0;
+    font-size: 20px;
+  }
+  label {
+    top: 8px;
+  }
+  .instructions {
+    margin-top: 8px;
+  }
+}
+
 
 @media screen and (max-width: 820px) {
   header {

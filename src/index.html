@@ -63,6 +63,7 @@
 
 <div id="menu">
   <div class="difficulty-title">Difficulty</div>
+  <div class="instructions">Choose a difficulty and click on a puzzle to start new game.</div>
   <div class="radio-toolbar">
     <input type="radio" id="veryEasy" name="radioDifficulty" value="veryEasy" rows="2" cols="2">
     <label for="veryEasy">Very Easy (4)</label>
@@ -82,6 +83,11 @@
     <input type="radio" id="extreme" name="radioDifficulty" value="extreme" rows="6" cols="8">
     <label for="extreme">Extreme (48)</label>
   </div>
+  <div class="rotate-option">
+    <div class="difficulty-title">Allow pieces' rotation on start:</div>
+    <input type="checkbox" id="switch" /><label for="switch"></label>
+    <div class="instructions">Double click piece to rotate. Pieces can only be connected on upwards position.</div>
+  </div>
   <div class="difficulty-title">Puzzles</div>
   <div id="models"></div>
 </div>
@@ -93,6 +99,10 @@
 </div>
 <div id="container">
   <div id="backgroundImage"></div>
+  <div id="loading">
+    <div class="loadingCircle"></div>
+    <p>Creating Puzzles</p>
+  </div>
 </div>
 <div class="startButtonContainer">
   <button id="start" type="button">
