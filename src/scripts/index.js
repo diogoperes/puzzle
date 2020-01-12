@@ -443,10 +443,10 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  const rotatePiecesSwitch  = document.getElementById('switch');
-  rotatePiecesSwitch.addEventListener( 'change', (e) => {
-    rotatePieces = rotatePiecesSwitch.checked;
-  });
+  // const rotatePiecesSwitch  = document.getElementById('switch');
+  // rotatePiecesSwitch.addEventListener( 'change', (e) => {
+  //   rotatePieces = rotatePiecesSwitch.checked;
+  // });
 
 });
 
@@ -460,7 +460,7 @@ document.addEventListener("fullscreenchange", function(){
     }
   }, false);
 
-function scrollBodyTop(){return document.body.scrollTop|| document.documentElement.scrollTop;}
+// function scrollBodyTop(){return document.body.scrollTop|| document.documentElement.scrollTop;}
 function final(){
   // document.querySelectorAll(".move").forEach(function(e,i){
   //   e.path.style.strokeWidth="1px";
@@ -489,6 +489,10 @@ function final(){
 //   document.querySelector("#tap").style.display="unset";
 //   // document.querySelector("#tap").style.opacity=1;
 // }
+
+/**
+ * Start function called when the user presses the button start
+ */
 function start(){
   document.querySelector("#start").style.height=0;
   document.getElementById("arrangePieces").style.height="";
@@ -513,24 +517,29 @@ function start(){
 
     // e.style.left=Math.random()*(window.innerWidth -100) +"px";
 
-    if( rotatePieces ) {
-      setTimeout(function(){
-        let angle=Math.floor(Math.random()*4);
+    rotatePieces = document.getElementById('switch').checked;
 
-        // let angle=0;
 
-        // e.setAttribute("classangle","g"+angle);
-        e.rotation=angle*90;
-        e.angle=angle;
-        e.style.transform="rotate("+e.rotation+"deg)";
-      },10);
-    }
+    setTimeout(function(){
+      let angle = rotatePieces ? Math.floor(Math.random()*4) : 0;
+
+      // let angle=0;
+
+      // e.setAttribute("classangle","g"+angle);
+      e.rotation=angle*90;
+      e.angle=angle;
+      e.style.transform="rotate("+e.rotation+"deg)";
+    },10);
+
 
   });
   timeInitial = (new Date).getTime();
   document.getElementById("time").innerHTML="";
 }
 
+/**
+ * Distribute pieces around puzzle container
+ */
 function arrangePieces() {
   document.querySelectorAll("body > .move").forEach(function(e,i){
     let positionToSpawn = getPositionToSpawn();
@@ -547,6 +556,11 @@ function arrangePieces() {
   });
 }
 
+/**
+ * Return random position to spawn without being on top of puzzle container
+ *
+ * @returns {{top: string, left: string}} - positions to place puzzle piece
+ */
 function getPositionToSpawn() {
   let minHeightSpawnBottom = document.getElementById('container').getBoundingClientRect().y + document.getElementById('container').getBoundingClientRect().height;
   let maxHeightSpawnBottom = document.body.clientHeight - sizeOfPieces;
@@ -571,6 +585,9 @@ function getPositionToSpawn() {
   }
 }
 
+/**
+ *  Function called on double click on top of puzzle piece to rotate it
+ */
 function turn(){
 
   this.angle++;
@@ -585,6 +602,12 @@ function turn(){
 
 }
 
+/**
+ * Function to move puzzle piece from document to puzzle container and fix it.
+ * Called when a piece it's in its correct and final position
+ *
+ * @param {Element} p - puzzle piece to fix inside puzzle container
+ */
 function fixPiece(p){
   let correspondentPositionOnContainer = positionsList[p.index];
   let offsetLeft = correspondentPositionOnContainer.offsetLeft + document.getElementById("container").offsetLeft;
@@ -631,9 +654,12 @@ function fixPiece(p){
 }
 
 
-/*
-*  Check if piece can be placed in correct position
-*/
+/**
+ * Check if piece can be placed in correct position inside puzzle container
+ *
+ * @param {Element} p - puzzle piece to place
+ * @returns {boolean} - boolean value indicating if piece was placed
+ */
 function placePiece(p){
   if(p.style) {
     p.style.zIndex = zIndex++;
@@ -690,6 +716,10 @@ function placePiece(p){
     return false;
   }
 }
+
+/**
+ * onMouseUp and onTouchEnd handler. Function called when a puzzle piece is dropped.
+ */
 function dropPiece(){
   let pieceToPlace = selectedPiece;
   if( pieceToPlace && pieceToPlace.parentElement.className === 'move' ) pieceToPlace = pieceToPlace.parentElement;
@@ -726,6 +756,11 @@ function dropPiece(){
 document.addEventListener('mousemove', drag, {passive: false});
 document.addEventListener("touchmove", drag, {passive: false});
 
+/**
+ * Handler for drag event on puzzle piece
+ *
+ * @param {Element} e - element dragged
+ */
 function drag(e) {
   // clickCount=0;
   // event.preventDefault();
@@ -847,10 +882,9 @@ let lastTarget;
  * @param e mouse event
  */
 function onDblClick(e) {
-  if(e.target.parentElement.className === 'move' || e.target.querySelectorAll('.move').length > 0) {
+  if( e.target.parentElement.className === 'move' || e.target.querySelectorAll('.move').length > 0 || !rotatePieces ) {
     return;
   }
-
 
   if ( lastTarget === undefined || lastTarget !== e.target) {
     lastTarget = e.target;
