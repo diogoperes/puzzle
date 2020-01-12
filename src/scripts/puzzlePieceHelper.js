@@ -1,3 +1,30 @@
+/**
+ * @typedef {Object} Path
+ * @property {string} draw - svg path of correspondent side
+ * @property {string} inverse - inverse of svg path of draw property
+ */
+
+/**
+ * @typedef {Object} PieceData
+ * @property {string} type - type of puzzle piece (location on puzzle grid)
+ * @property {Path} a - top puzzle side data
+ * @property {Path} b - right puzzle side data
+ * @property {Path} c - bottom puzzle side data
+ * @property {Path} d - left puzzle side data
+ */
+
+/**
+ * Function to generate svg path according to a puzzle piece location
+ *
+ * @param row - puzzle piece row position index
+ * @param col - puzzle piece column position index
+ * @param index - index of puzzle piece on the matrix
+ * @param numRows - number of rows in the puzzle matrix
+ * @param numCols - number of columns in a puzzle row
+ * @param {Array<Element>} director - list of pieces and their data, similar to the matrix but with a level only
+ *
+ * @returns {PieceData} - return each side of puzzle piece path
+ */
 export function pieceData(row,col,index, numRows, numCols, director){
   let object ={};
   switch (true) {
@@ -91,7 +118,12 @@ export function pieceData(row,col,index, numRows, numCols, director){
 }
 
 
-//create right part of piece and inversee
+/**
+ * Create right part of piece and inverse
+ *
+ * @param {number} i - index of puzzle piece
+ * @returns {{draw: {string}, inverse: {string}}} - Return a random draw path
+ */
 function createRightFace(i){
   // return {draw:" l -10,50 l 10,50 ",inverse:" l  -10,-50 l 10,-50 "}
 
@@ -130,6 +162,13 @@ function createRightFace(i){
   return path[Math.floor(Math.random()*path.length)];
 
 }
+
+/**
+ * Create bottom part of piece and inverse
+ *
+ * @param {number} i - index of puzzle piece
+ * @returns {{draw: {string}, inverse: {string}}} - Return a random draw path
+ */
 function createBottomFace(i){
   // return {draw:" l -50,10 l -50,-10 ",inverse:" l  50,10 l 50,-10 "}
 
@@ -170,11 +209,24 @@ function createBottomFace(i){
 }
 
 
-//get the inverse of left piece's right face to be the left face of current piece
+/**
+ * Get the inverse of left piece's right face to be the left face of current piece
+ *
+ * @param {number} i - index of puzzle piece to get left face
+ * @param {Array<PieceData>} director - list of pieces and their data, similar to the matrix but with a level only
+ * @returns {{draw: string}} - path for the left face puzzle piece passed
+ */
 function getInverseRightFace(i, director){
   return {draw:director[i-1].b.inverse};
 }
-//get the inverse of top piece's bottom face to be the top face of current piece
+
+/**
+ * Get the inverse of top piece's bottom face to be the top face of current piece
+ *
+ * @param {number} i - index of puzzle piece to get top face
+ * @param {Array<PieceData>} director - list of pieces and their data, similar to the matrix but with a level only
+ * @returns {{draw: string}} - path for the top face puzzle piece passed
+ */
 function getInverseBottomFace(i, director, numCols){
   return {draw:director[i-numCols].c.inverse};
 }

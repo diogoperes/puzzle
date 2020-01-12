@@ -48,6 +48,7 @@ let rotatePieces = false;
 const seeImage_btn = document.getElementById("seeImage");
 
 /**
+ *  Create puzzle piece element with given path
  *
  * @param piecePath - piece svg path
  * @param {number} x - piece position in matrix row
@@ -57,7 +58,6 @@ const seeImage_btn = document.getElementById("seeImage");
 function createPiece(piecePath,x,y,index){
 
   piecePath = "M40,40 " + piecePath;
-
   let canvas = document.createElement('canvas');
   canvas.width = 180;
   canvas.height = 180;
@@ -65,17 +65,8 @@ function createPiece(piecePath,x,y,index){
   let mask = new Path2D(piecePath);
   ctx.save();
   ctx.clip(mask);
-  // let imgSrc = `${host}/${model.width}/${model.height}`;
-  // let imgSrc = model.imageUrl;
-
-  // console.log('numCols', numCols);
-  // console.log('numRows', numRows);
-  // console.log('sizeOfPieces', sizeOfPieces);
 
   let imgSrc = `${host}/id/${idOfImageSelected}/${numCols*100}/${numRows*100}`;
-
-  // console.log('imgSrc', imgSrc);
-
   let base_image = new Image();
   // check if //domain.com or http://domain.com is a different origin
   if (/^([\w]+\:)?\/\//.test(imgSrc) && imgSrc.indexOf(location.host) === -1) {
@@ -84,10 +75,6 @@ function createPiece(piecePath,x,y,index){
   base_image.src = imgSrc;
   base_image.onload = function(){
     ctx.drawImage(base_image, x*-100+40, y*-100+40);
-
-    // ctx.strokeStyle = 'black';
-    // ctx.lineWidth = 2;
-    // ctx.stroke(mask);
 
     // get png data url
     let pngUrl = canvas.toDataURL();
@@ -105,15 +92,13 @@ function createPiece(piecePath,x,y,index){
       placePuzzleImagesInPlace();
     }
 
-    // console.log(image);
-
-    // document.body.appendChild(image);
-
-
   };
 
 }
 
+/**
+ *  Place generated puzzle images on puzzle container
+ */
 function placePuzzleImagesInPlace() {
   window.puzzleImagesList = puzzleImagesList;
 
@@ -137,13 +122,9 @@ function placePuzzleImagesInPlace() {
       move.className="move";
       move.style.width = sizeOfPieces + "px";
       move.style.height = sizeOfPieces + "px";
-      // move.path=path;
-      // move.onmousemove=getPos;
       move.onmousedown=getPos;
       move.onclick=onDblClick;
       move.ontouchstart=getPos;
-      move.onmouseout=stopTracking;  move.touchcancel=stopTracking;
-      //move.setAttribute("classangle","g0")
       move.angle=0;
       move.occupy= false;
       move.position=function(){return {left:this.offsetLeft+(sizeOfPieces/2),top:this.offsetTop +(sizeOfPieces/2)};};
@@ -167,23 +148,6 @@ function placePuzzleImagesInPlace() {
       move.y = row;
 
       rowList.push(move);
-      // let xmlns = "http://www.w3.org/2000/svg";
-      // let svg = document.createElementNS(xmlns, "svg");
-      // let path = document.createElementNS(xmlns, 'path');
-      // svg.setAttribute('viewbox', '0 0 180 180');
-      // svg.setAttribute('width', sizeOfPieces * 180 / 100);
-      // svg.setAttribute('height', sizeOfPieces * 180 / 100);
-      // // svg.setAttribute('x', '0');
-      // // svg.setAttribute('y', '0');
-      // svg.setAttribute('preserveAspectRatio', 'none');
-      // path.setAttribute('d', puzzleImagesList[col+'-'+row].path);
-      // // svg.appendChild(path);
-      // svg.innerHTML = `<path d="${puzzleImagesList[col+'-'+row].path}"></path>`;
-      //
-      // move.innerHTML = `<svg viewbox="0 0 180 180" width="${sizeOfPieces * 180 / 100}" height="${sizeOfPieces * 180 / 100}">
-      //   <path d="${puzzleImagesList[col+'-'+row].path}"></path>
-      // </svg>`;
-      // move.appendChild(svg);
 
       index++;
     }
@@ -191,67 +155,15 @@ function placePuzzleImagesInPlace() {
   }
 
   document.getElementById('loading').style.display = 'none';
-
+  document.getElementById('start').style.display = 'inline-block';
 }
 
-
-
-// var i, element;
-// var models=[
-//
-//   // {
-//   //   numRows : 4,
-//   //   numCols : 6,
-//   //   urlImg :"4x6.jpg"
-//   // },
-//   {
-//     numRows : 2,
-//     numCols : 2,
-//     // urlImg :"2x2.jpg",
-//     // width: 200,
-//     // height: 200,
-//   },
-//   {
-//     numRows : 3,
-//     numCols : 3,
-//     // urlImg :"3x3.png",
-//     // width: 300,
-//     // height: 300,
-//   },
-//   {
-//     numRows : 4,
-//     numCols : 4,
-//     // urlImg :"4x4.jpg",
-//     // width: 400,
-//     // height: 400,
-//   },
-//
-//   {
-//     numRows : 5,
-//     numCols : 5,
-//     // urlImg :"5x5.png",
-//     // width: 500,
-//     // height: 500,
-//   },
-//   {
-//     numRows : 5,
-//     numCols : 7,
-//     // urlImg :"7x5.jpg",
-//     // width: 700,
-//     // height: 500,
-//   },
-//   {
-//     numRows : 6,
-//     numCols : 8,
-//     // urlImg :"8x6.jpg",
-//     // width: 800,
-//     // height: 600,
-//   },
-//
-// ];
-
-function selectModel(i){
-  // document.getElementById("models").style.height=0;
+/**
+ * Function called when a puzzle image is clicked inside the menu
+ *
+ * @param {number} id - Id of image clicked
+ */
+function selectModel(id){
   document.querySelector("#start").style.height="";
   seeImage_btn.style.height="0";
   document.getElementById("arrangePieces").style.height="0";
@@ -259,39 +171,23 @@ function selectModel(i){
   document.querySelector("#menu").classList.remove('active');
   document.querySelector("#menuButton").classList.remove('active');
 
-  // model=models[i];
-
-  idOfImageSelected = i;
+  idOfImageSelected = id;
 
   createPuzzle();
-  // document.querySelector("#start").style.height="";
-  // document.querySelector("#modelsButton").style.height="";
-  // document.querySelector("#tap").style.opacity=0;
-  // document.querySelector("#tap").style.display='none';
 }
 
+/**
+ * Function to fetch data from picsum to generate the images, creates also the menu puzzle images
+ *
+ * @returns {Promise<Response | never>} - Promisse with fetch result
+ */
 function createListModels(){
-  // const response = fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`);
-  // console.log('response', response)
-  // const json = JSON.parse(response);
-
   return fetch(`https://picsum.photos/v2/list?page=${getRandomImageId(10)}&limit=100`)
     .then(response => response.json())
     .then( data => {
-
-      // var HTMLmodels="<h2>Select model</h2>";
-      // let HTMLmodels = document.createElement('h2');
-      // HTMLmodels.innerHTML = "Select model";
-      // document.getElementById("models").appendChild(HTMLmodels);
-
       let indexOfImageToLoad = getRandomInt(0., data.length - numberOfImagesToLoad);
 
       for (let i=0; i < numberOfImagesToLoad; i++) {
-        // let e = models[i];
-        // e.width = e.numCols* 100;
-        // e.height = e.numRows * 100;
-        // e.imageUrl = `${host}/id/${data[getRandomImageId(data.length)].id}/${e.width}/${e.height}`;
-        // let id = data[getRandomImageId(data.length)].id;
         let id = data[indexOfImageToLoad].id;
         indexOfImageToLoad++;
         if(i === 0) idOfImageSelected = id;
@@ -302,36 +198,24 @@ function createListModels(){
 
         img.addEventListener("click", () => selectModel(id));
         document.getElementById("models").appendChild(img);
-
-        //   let div = document.createElement('div');
-        //   div.innerHTML = `
-        //   <b>${(i+1)}</b><br>
-        //   ${e.numCols * e.numRows} pieces<br>
-        //   <img height="${(e.numRows/3*100)}" src="${e.imageUrl}" width="${e.numcols/3*100}"><br>
-        //   <small>${e.numCols*100} x ${e.numRows*100}</small>
-        // `;
-        //   div.addEventListener("click", () => selectModel(i));
-        //   document.getElementById("models").appendChild(div);
-
       }
 
       createPuzzle();
-
     });
-
-
-
 }
 
+/**
+ * Get a random value between 0 and max value passed
+ *
+ * @param {number} [max = 10] - max value of random number
+ * @returns {number} - random number returned
+ */
 function getRandomImageId(max = 10) {
   return Math.round(Math.random() * max);
 }
 
 function createPuzzle(){
-  // imageSrc = `${host}/id/${getRandomImageId()}/${model.width}/${model.height}`;
-
   piecesPlacedCorrectly=0;
-  // document.getElementById("container").innerHTML="";
   let child = document.getElementById("container").getElementsByClassName("position")[0];
   while (child) {
     document.getElementById("container").removeChild(child);
@@ -348,8 +232,6 @@ function createPuzzle(){
   let index=0;
   selectedPiece= false;
   realSelectedPiece= false;
-  // numRows=model.numRows;
-  // numCols=model.numCols;
 
   sizeOfPieces = maxSizeOfPieces;
   //adjust piece size to not overflow screen width
@@ -369,8 +251,7 @@ function createPuzzle(){
   document.getElementById("container").style.width=numCols*sizeOfPieces +"px";
   document.getElementById("container").style.height=numRows*sizeOfPieces +"px";
   document.getElementById("container").classList.remove('puzzleFinished');
-  // document.getElementById("container").style.backgroundPositionY=sizeOfPieces*model.numRows+"px";
-  // console.log(model.imageUrl);
+
   let backgroundUrl = `${host}/id/${idOfImageSelected}/${numCols*sizeOfPieces}/${numRows*sizeOfPieces}`;
   document.getElementById("backgroundImage").style.backgroundImage = `url(${backgroundUrl})`;
   document.getElementById('loading').style.display = 'block';
@@ -387,34 +268,19 @@ function createPuzzle(){
   }
 }
 
+/**
+ * Function to add event listeners when document is loaded
+ */
 document.addEventListener("DOMContentLoaded", function() {
-  // model=models[1];
-
-  // let image = new Image();
-  // image.src = `${host}/${model.width}/${model.height}`;
-  // image.id = "puzzleImage";
-  // document.body.appendChild(image);
-
   createListModels();
-
-
-  // document.getElementById("seeModel").onmouseover=function(){
-  //   document.getElementById("container").style.backgroundImage="url("+model.imageUrl+")";
-  //   document.getElementById("container").style.opacity="0.5";
-  //   document.getElementById("container").style.opacity="0.5";
-  // };
-  // document.getElementById( "seeModel").onmouseout=function(){
-  //   document.getElementById("container").style.backgroundPositionY=100*model.numRows+"px";
-  // };
 
   document.getElementById("start").onclick= start;
   document.getElementById("arrangePieces").onclick = arrangePieces;
   document.getElementById("arrangePieces").style.height="0";
-  // document.getElementById("modelsButton").onclick = showModels;
   seeImage_btn.onclick = seeImage;
   seeImage_btn.style.height="0";
+
   let buttonFullScreen=document.getElementById("fullscreen");
-  // buttonFullScreen.fullScreen=false;
   buttonFullScreen.onclick=function(){
     let isFullscreen = !!document.fullscreen;
     let buttonFullScreen=document.getElementById("fullscreen");
@@ -442,36 +308,26 @@ document.addEventListener("DOMContentLoaded", function() {
       numCols = e.currentTarget.getAttribute("cols");
     });
   }
-
-  // const rotatePiecesSwitch  = document.getElementById('switch');
-  // rotatePiecesSwitch.addEventListener( 'change', (e) => {
-  //   rotatePieces = rotatePiecesSwitch.checked;
-  // });
-
 });
 
+/**
+ * Function called when window change to or from fullscreen view
+ */
 document.addEventListener("fullscreenchange", function(){
-    let isFullscreen = !!document.fullscreen;
-    let buttonFullScreen=document.getElementById("fullscreen");
-    if ( isFullscreen ){
-      buttonFullScreen.className="fullscreenOff";
-    }else{
-      buttonFullScreen.className="fullscreen";
-    }
-  }, false);
+  let isFullscreen = !!document.fullscreen;
+  let buttonFullScreen=document.getElementById("fullscreen");
+  if ( isFullscreen ){
+    buttonFullScreen.className="fullscreenOff";
+  }else{
+    buttonFullScreen.className="fullscreen";
+  }
+}, false);
 
-// function scrollBodyTop(){return document.body.scrollTop|| document.documentElement.scrollTop;}
+/**
+ * Function called when game is finished
+ */
 function final(){
-  // document.querySelectorAll(".move").forEach(function(e,i){
-  //   e.path.style.strokeWidth="1px";
-  //   e.path.style.stroke="black";
-  // });
   document.getElementById("container").classList.add('puzzleFinished');
-  // document.querySelector("#modelsButton").style.height="";
-  // document.querySelector("#tap").style.height="";
-  // document.querySelector("#tap").style.opacity=0;
-  // document.querySelector("#seeModel").style.top="-35px";
-  // document.getElementById("models").style.height=0;
   document.getElementById("time").innerHTML=timeEnd;
   document.getElementById("time").style.opacity = "1";
 
@@ -481,14 +337,6 @@ function final(){
   seeImage_btn.classList.remove('checked');
 
 }
-// function showModels(){
-//   document.getElementById("models").style.height="calc(100vh - 100px)";
-//   document.getElementById("time").innerHTML="";
-//   document.querySelector("#modelsButton").style.height=0;
-//   // document.querySelector("#tap").style.height="";
-//   document.querySelector("#tap").style.display="unset";
-//   // document.querySelector("#tap").style.opacity=1;
-// }
 
 /**
  * Start function called when the user presses the button start
@@ -497,29 +345,15 @@ function start(){
   document.querySelector("#start").style.height=0;
   document.getElementById("arrangePieces").style.height="";
   seeImage_btn.style.height="";
-  // document.querySelector("#modelsButton").style.height=0;
-  // document.querySelector("#seeModel").style.top="10px";
-  // document.querySelector("#tap").style.height=0;
-  // document.querySelector("#tap").style.opacity=0;
-  // document.querySelector("#tap").style.display="none";
-  // document.querySelector("#modelsButton").style.height=0;
 
   document.querySelectorAll(".move").forEach(function(e,i){
-
     let positionToSpawn = getPositionToSpawn();
     e.style.top = positionToSpawn.top;
     e.style.left = positionToSpawn.left;
-
     e.parentNode.removeChild(e);
     document.body.appendChild(e);
-    // e.style.top= 80+ Math.random()*400 +"px";
-    // e.style.top = getRandomInt(minHeightSpawnBottom, maxHeightSpawnBottom) + "px";
-
-    // e.style.left=Math.random()*(window.innerWidth -100) +"px";
 
     rotatePieces = document.getElementById('switch').checked;
-
-
     setTimeout(function(){
       let angle = rotatePieces ? Math.floor(Math.random()*4) : 0;
 
@@ -589,17 +423,11 @@ function getPositionToSpawn() {
  *  Function called on double click on top of puzzle piece to rotate it
  */
 function turn(){
-
   this.angle++;
   if( this.angle >= 4 ) this.angle = 0;
   this.rotation += 90;
-
   this.style.transform="rotate("+this.rotation+"deg)";
-
-  // this.setAttribute("classangle","g"+this.angle%4);
   if ((this.occupy===this.index) && this.angle%4 ===0)fixPiece(this);
-
-
 }
 
 /**
@@ -628,16 +456,13 @@ function fixPiece(p){
   p.onmouseup="";
   p.style.cursor="default";
   p.style.position="static";
-  // setTimeout(function(){p.removeAttribute("classangle");},300);
-
-
   p.style.transition=".1s";
-  // p.path.style.strokeWidth=".5px";
+
   setTimeout(function(){p.style.transform="scale(1.05)";},50);
   setTimeout(function(){p.style.transform="scale(1)";},150);
-  // setTimeout(function(){p.path.style.strokeWidth="2px"; p.style.zIndex= 0;},250);
-  // setTimeout(function(){p.style.filter = "drop-shadow(black 0px 0px 0)"; p.style.zIndex= 0;},250);
   piecesPlacedCorrectly++;
+
+  // Check if all pieces have been connected
   if (piecesPlacedCorrectly === numRows * numCols ){
     timeEnd = Math.floor(((new Date).getTime()-timeInitial)/1000);
     let hours = Math.floor(timeEnd/3600);
@@ -686,33 +511,6 @@ function placePiece(p){
         }
         return true;
       }
-
-    // let positionsInContainer = document.querySelectorAll(".position");
-    // for (let i = 0; i < positionsInContainer.length; i++) {
-    //   let position = positionsInContainer[i];
-    //   let offsetLeft = position.offsetLeft + document.getElementById("container").offsetLeft;
-    //   let offsetTop = position.offsetTop + document.getElementById("container").offsetTop;
-    //   if ( ( p.position().left>offsetLeft && p.position().left<offsetLeft+sizeOfPieces ) &&
-    //     ( p.position().top>offsetTop && p.position().top<offsetTop+sizeOfPieces ) &&
-    //     !position.occupied &&
-    //     position.index === p.index && p.angle%4 === 0){
-    //     // if (position.index === p.index && p.angle%4 === 0) {
-    //     fixPiece(p, position, offsetTop, offsetLeft);
-    //     if ( [...p.childNodes].find(child => child.className === 'move') ) {
-    //       for (let i = 0; i <  p.childNodes.length ; i++) {
-    //         if( p.childNodes[i].className === 'move' ) {
-    //           fixPiece(p, position, offsetTop, offsetLeft);
-    //         }
-    //       }
-    //     }
-    //     return true;
-    //     // }
-    //   }
-    // }
-
-    // document.querySelectorAll(".position").forEach (function(e,i){
-    //
-    // });
     return false;
   }
 }
@@ -762,8 +560,6 @@ document.addEventListener("touchmove", drag, {passive: false});
  * @param {Element} e - element dragged
  */
 function drag(e) {
-  // clickCount=0;
-  // event.preventDefault();
   if (e.type === 'touchmove' ) {
     e.clientX = e.touches[0].clientX;
     e.clientY = e.touches[0].clientY;
@@ -772,10 +568,6 @@ function drag(e) {
   let pieceToDrag = selectedPiece;
   if(selectedPiece && selectedPiece.parentElement.className === 'move') {
     pieceToDrag = pieceToDrag.parentElement;
-    // offset = [
-    //   getCoords(pieceToDrag).left - e.clientX,
-    //   getCoords(pieceToDrag).top  - e.clientY
-    // ];
   }
 
   if (pieceToDrag) {
@@ -791,14 +583,15 @@ function drag(e) {
     e.preventDefault();
     e.stopPropagation();
   }
-
-
 }
 
+/**
+ * Function called when a piece is being dragged
+ *
+ * @param {Element} e
+ */
 function takePiece(e){
-
-  // console.log('take piece')
-
+  // if its already placed, do nothing
   if(e.target.parentElement.className === 'position') {
     return;
   }
@@ -809,13 +602,8 @@ function takePiece(e){
     this.offsetTop - e.clientY
   ];
 
+  // if it's a child piece, already connected, drag its parent
   if(e.target.parentElement.className === 'move') {
-    // realSelectedPiece = selectedPiece;
-    // selectedPiece = e.target.parentElement;
-    // offset = [
-    //   selectedPiece.offsetLeft - e.clientX,
-    //   selectedPiece.offsetTop  - e.clientY
-    // ];
     offset = [
       getCoords(e.target.parentElement).left - e.clientX,
       getCoords(e.target.parentElement).top  - e.clientY
@@ -842,32 +630,14 @@ function getPos(e){
     e.clientY = e.touches[0].clientY;
   }
 
-  // let x = e.clientX - this.offsetLeft;
-  // let y = e.clientY - this.offsetTop + scrollBodyTop();
-
   let cords = getCoords(this);
   let x = e.clientX - cords.left ;
   let y = e.clientY - cords.top;
 
-
-
   if ((x>0 && x<sizeOfPieces) && (y>0 && y<sizeOfPieces)){
     takePiece.call(this, e);
-    // this.onmousedown=takePiece;
-    // this.touchstart=takePiece;
-    // this.ondblclick=turn;
-    // this.style.cursor="move";
-
     this.style.zIndex=zIndex+1;
-
-
-
   }else{
-
-    // this.onmousedown="";
-    // this.touchstart="";
-    // this.ondblclick="";
-    // this.style.cursor="default";
     this.style.zIndex=this.zIndexPrevi;
   }
 
@@ -914,12 +684,6 @@ function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function stopTracking(){
-
-
-
 }
 
 /**
