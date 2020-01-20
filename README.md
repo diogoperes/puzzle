@@ -1,3 +1,5 @@
+![Puzzle Game](https://github.com/diogoperes/puzzle/blob/master/site/img/puzzle.PNG)
+
 [![Build Status](https://travis-ci.org/diogoperes/puzzle.svg?branch=master)](https://travis-ci.org/diogoperes/puzzle)
 
 # Puzle Game
