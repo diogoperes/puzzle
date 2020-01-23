@@ -50,8 +50,6 @@ The release process is automated with travis although to do it manually follow t
   * Run `git push origin {hash}:gh-pages --force`
   * Run `git branch -D gh-pages`
 
-This should be it. Try not to delete git and planet earth itself while doing it :grin: ( happened one time :sweat_smile: )
-
 ## Next steps
 
 * Add a button to load a local image;
