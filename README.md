@@ -1,4 +1,6 @@
-![](https://github.com/diogoperes/puzzle/blob/master/site/img/puzzle.gif)
+<p align="center">
+  <img src="https://github.com/diogoperes/puzzle/blob/master/site/img/puzzle.gif" alt="puzzle"/>
+</p>
 
 [![Build Status](https://travis-ci.org/diogoperes/puzzle.svg?branch=master)](https://travis-ci.org/diogoperes/puzzle)
 
